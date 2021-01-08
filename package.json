@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "DEBUG=* nodemon ./bin/www",
+    "start": "DEBUG=* nodemon --exec babel-node ./bin/www",
     "db:create": "npx sequelize-cli db:create",
     "db:migrate": "npx sequelize-cli db:migrate",
     "db:migrate:undo": "npx sequelize-cli db:migrate:undo"
@@ -21,6 +21,9 @@
     "sequelize": "^6.3.5"
   },
   "devDependencies": {
+    "@babel/core": "^7.12.10",
+    "@babel/node": "^7.12.10",
+    "@babel/preset-env": "^7.12.11",
     "nodemon": "^2.0.7",
     "prettier": "^2.2.1",
     "sequelize-cli": "^6.2.0"
