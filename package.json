@@ -12,6 +12,8 @@
     "node": "14.13.x"
   },
   "dependencies": {
+    "@helium/crypto": "^3.7.0",
+    "@helium/transactions": "^3.11.0",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "express": "~4.16.1",

@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
       address: DataTypes.STRING,
       apiKey: DataTypes.STRING,
       locationNonceLimit: DataTypes.INTEGER,
-      keypair: DataTypes.STRING.BINARY,
+      keypairEntropy: DataTypes.STRING,
     },
     {
       sequelize,

@@ -22,8 +22,8 @@ module.exports = {
         defaultValue: 1,
         type: Sequelize.INTEGER,
       },
-      keypair: {
-        type: Sequelize.STRING.BINARY,
+      keypairEntropy: {
+        type: Sequelize.STRING,
       },
       createdAt: {
         allowNull: false,
