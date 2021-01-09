@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "DEBUG=* nodemon --exec babel-node ./bin/www",
+    "dev": "DEBUG=* nodemon --exec babel-node ./src/server.js",
+    "build": "babel src --out-dir build",
+    "start": "node build/server.js",
+    "clean": "rimraf build",
     "db:create": "npx sequelize-cli db:create",
     "db:migrate": "npx sequelize-cli db:migrate",
     "db:migrate:undo": "npx sequelize-cli db:migrate:undo"
@@ -23,11 +26,14 @@
     "sequelize": "^6.3.5"
   },
   "devDependencies": {
+    "@babel/cli": "^7.12.10",
     "@babel/core": "^7.12.10",
     "@babel/node": "^7.12.10",
+    "@babel/plugin-transform-runtime": "^7.12.10",
     "@babel/preset-env": "^7.12.11",
     "nodemon": "^2.0.7",
     "prettier": "^2.2.1",
+    "rimraf": "^3.0.2",
     "sequelize-cli": "^6.2.0"
   }
 }

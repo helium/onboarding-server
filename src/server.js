@@ -6,7 +6,7 @@
  * Module dependencies.
  */
 
-var app = require('../app');
+import app from './app'
 var debug = require('debug')('onboarding-server:server');
 var http = require('http');
 
