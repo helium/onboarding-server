@@ -12,10 +12,11 @@ export const pay = async (req, res) => {
     const { onboardingKey } = req.params
     const { transaction } = req.body
 
-    const { Maker: maker } = await Hotspot.findOne({
+    const hotspot = await Hotspot.findOne({
       where: { onboardingKey },
       include: Maker.scope('withKeypair'),
     })
+    const { Maker: maker } = hotspot
     const keypairEntropy = Buffer.from(maker.keypairEntropy, 'hex')
     const keypair = await Keypair.fromEntropy(keypairEntropy)
 
@@ -34,6 +35,17 @@ export const pay = async (req, res) => {
 
       default:
         throw new Error('Unsupported transaction type')
+    }
+
+    if (txn?.payer?.b58 !== maker.address) {
+      throw new Error('Invalid payer address')
+    }
+
+    if (
+      hotspot.publicAddress !== undefined &&
+      hotspot.publicAddress !== txn.gateway
+    ) {
+      throw new Error('Onboarding key already used by different Hotspot')
     }
 
     const signedTxn = await txn.sign({ payer: keypair })
