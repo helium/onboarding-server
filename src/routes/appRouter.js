@@ -13,6 +13,6 @@ router.use(
   }),
 )
 
-router.post('/transactions/pay', transactionsController.pay)
+router.post('/transactions/pay/:onboardingKey', transactionsController.pay)
 
 module.exports = router

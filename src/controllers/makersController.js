@@ -22,5 +22,10 @@ export const create = async (req, res) => {
     keypairEntropy: keypairEntropy.toString('hex'),
   })
 
-  return successResponse(req, res, maker)
+  return successResponse(req, res, {
+    name: maker.name,
+    address: maker.address,
+    apiKey: maker.apiKey,
+    locationNonceLimit: maker.locationNonceLimit,
+  })
 }

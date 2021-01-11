@@ -1,4 +1,3 @@
-
 export const successResponse = (req, res, data, code = 200) =>
   res.send({
     code,
@@ -30,4 +29,3 @@ export const validateFields = (object, fields) => {
   })
   return errors.length ? `${errors.join(', ')} are required fields.` : ''
 }
-
