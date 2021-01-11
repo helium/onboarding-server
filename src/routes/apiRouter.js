@@ -1,0 +1,45 @@
+import express from 'express'
+import rateLimit from 'express-rate-limit'
+import * as transactionsController from '../controllers/transactionsController'
+import * as makersController from '../controllers/makersController'
+import * as hotspotsController from '../controllers/hotspotsController'
+import { successResponse } from '../helpers'
+
+const REQUIRED_FIRMWARE_VERSION = '2019.11.06.0'
+
+const router = express.Router()
+
+const numberEnv = (envName, fallback) => {
+  if (process.env[envName]) {
+    return parseInt(process.env[envName])
+  }
+  return fallback
+}
+
+const limiter = rateLimit({
+  windowMs: numberEnv('RATE_LIMIT_WINDOW', 15 * 60 * 1000), // 15 minutes
+  max: numberEnv('RATE_LIMIT_MAX', 100) // limit each IP to 100 requests per windowMs
+})
+
+router.use(limiter)
+
+// Legacy CLI Support (2020)
+router.post('/v1/transactions/pay/:onboardingKey', transactionsController.pay)
+router.get('/v1/limits', (req, res) => {
+  return successResponse(req, res, { location_nonce: 3 })
+})
+router.get('/v1/address', (req, res) => {
+  // TODO hardcode the helium inc maker address here
+  throw new Error('TODO')
+})
+
+// V2 (Q1 2021)
+router.get('/v2/hotspots/:onboardingKey', hotspotsController.show)
+router.post('/v2/transactions/pay/:onboardingKey', transactionsController.pay)
+router.get('/v2/makers', makersController.index)
+router.get('/v2/makers/:makerId', makersController.show)
+router.get('/v2/firmware', (req, res) => {
+  return successResponse(req, res, { version: REQUIRED_FIRMWARE_VERSION })
+})
+
+module.exports = router

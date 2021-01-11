@@ -2,6 +2,25 @@ import { Keypair, utils } from '@helium/crypto'
 import { Maker } from '../models'
 import { errorResponse, successResponse } from '../helpers'
 
+export const index = async (req, res) => {
+  try {
+    const makers = await Maker.findAll()
+    return successResponse(req, res, makers)
+  } catch (error) {
+    errorResponse(req, res, error.message, 500, error.errors)
+  }
+}
+
+export const show = async (req, res) => {
+  try {
+    const { makerId } = req.params
+    const maker = await Maker.findByPk(makerId)
+    return successResponse(req, res, maker)
+  } catch (error) {
+    errorResponse(req, res, error.message, 500, error.errors)
+  }
+}
+
 const generateApiKey = async () => {
   const buf = await utils.randomBytes(32)
   return buf.toString('hex')
