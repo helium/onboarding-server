@@ -10,12 +10,12 @@ export const errorResponse = (
   res,
   errorMessage = 'Something went wrong',
   code = 500,
-  error = {},
+  errors = [],
 ) =>
   res.status(500).json({
     code,
     errorMessage,
-    error,
+    errors,
     data: null,
     success: false,
   })

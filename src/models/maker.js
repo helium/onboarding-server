@@ -1,14 +1,9 @@
-const { Model } = require('sequelize')
+import { Model } from 'sequelize'
 
 module.exports = (sequelize, DataTypes) => {
   class Maker extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static associate(models) {
-      // define association here
+      this.hotspots = this.hasMany(models.Hotspot)
     }
   }
   Maker.init(
@@ -24,6 +19,16 @@ module.exports = (sequelize, DataTypes) => {
       modelName: 'Maker',
       tableName: 'makers',
       underscored: true,
+      defaultScope: {
+        attributes: { exclude: ['keypairEntropy', 'apiKey'] },
+      },
+      scopes: {
+        withKeypair: {
+          attributes: {
+            include: ['keypairEntropy'],
+          },
+        },
+      },
     },
   )
   return Maker
