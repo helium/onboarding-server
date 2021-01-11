@@ -880,10 +880,10 @@
   dependencies:
     protobufjs "^6.8.9"
 
-"@helium/transactions@^3.11.0":
-  version "3.11.0"
-  resolved "https://registry.yarnpkg.com/@helium/transactions/-/transactions-3.11.0.tgz#8deb5b2a967e1720472ba7d343299c8d3c0525df"
-  integrity sha512-dvENPY+DTGBgd/UKnVbPMm1XBMJqEVpH3v7Pa2aG/MvXjbZljB0IGjL8emTnuK74SkYSbmeCFjNNPlxX8m4thA==
+"@helium/transactions@^3.15.0":
+  version "3.15.0"
+  resolved "https://registry.yarnpkg.com/@helium/transactions/-/transactions-3.15.0.tgz#d7fb95e623b2962d60f2c4692f74e17fd8d0b502"
+  integrity sha512-vvTOfiVsITbx8MLAQoKoOjwua99uHoZTkq1ru/q2oXap6Qkr2bYurk7J7GirQHROhr14ZcxFzAGSR1vM0a/ydA==
   dependencies:
     "@helium/crypto" "^3.7.0"
     "@helium/proto" "^1.2.0"

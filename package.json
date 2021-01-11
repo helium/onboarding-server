@@ -21,7 +21,7 @@
     "@babel/plugin-transform-runtime": "^7.12.10",
     "@babel/preset-env": "^7.12.11",
     "@helium/crypto": "^3.7.0",
-    "@helium/transactions": "^3.11.0",
+    "@helium/transactions": "^3.15.0",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "express": "~4.16.1",
