@@ -2,9 +2,9 @@ var express = require('express')
 var cookieParser = require('cookie-parser')
 var logger = require('morgan')
 
-var indexRouter = require('./routes/index')
-var usersRouter = require('./routes/users')
-var makersRouter = require('./routes/makers')
+import indexRouter from './routes/indexRouter'
+import appRouter from './routes/appRouter'
+import adminRouter from './routes/adminRouter'
 
 var app = express()
 
@@ -14,7 +14,7 @@ app.use(express.urlencoded({ extended: false }))
 app.use(cookieParser())
 
 app.use('/', indexRouter)
-app.use('/users', usersRouter)
-app.use('/makers', makersRouter)
+app.use('/app', appRouter)
+app.use('/admin', adminRouter)
 
 module.exports = app

@@ -1,6 +1,6 @@
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('Makers', {
+    await queryInterface.createTable('makers', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -14,28 +14,28 @@ module.exports = {
       address: {
         type: Sequelize.STRING,
       },
-      apiKey: {
+      api_key: {
         type: Sequelize.STRING,
       },
-      locationNonceLimit: {
+      location_nonce_limit: {
         allowNull: false,
         defaultValue: 1,
         type: Sequelize.INTEGER,
       },
-      keypairEntropy: {
+      keypair_entropy: {
         type: Sequelize.STRING,
       },
-      createdAt: {
+      created_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },
-      updatedAt: {
+      updated_at: {
         allowNull: false,
         type: Sequelize.DATE,
       },
     })
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('Makers')
+    await queryInterface.dropTable('makers')
   },
 }

@@ -22,6 +22,8 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: 'Maker',
+      tableName: 'makers',
+      underscored: true,
     },
   )
   return Maker
