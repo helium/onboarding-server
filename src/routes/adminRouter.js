@@ -5,8 +5,8 @@ import * as hotspotsController from '../controllers/hotspotsController'
 
 const router = express.Router()
 
-const username = process.env.ADMIN_USERNAME || 'admin_user'
-const password = process.env.ADMIN_PASSWORD || 'admin_password'
+const username = process.env.ADMIN_USERNAME
+const password = process.env.ADMIN_PASSWORD
 
 router.use(
   basicAuth({

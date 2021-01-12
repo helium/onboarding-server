@@ -43,9 +43,10 @@ export const create = async (req, res) => {
     })
 
     return successResponse(req, res, {
+      id: maker.id,
       name: maker.name,
       address: maker.address,
-      apiKey: maker.apiKey,
+      apiKey,
       locationNonceLimit: maker.locationNonceLimit,
     })
   } catch (error) {

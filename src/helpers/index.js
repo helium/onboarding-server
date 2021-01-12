@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs'
 import { Maker } from '../models'
 
 export const successResponse = (req, res, data, code = 200, meta) =>
@@ -34,11 +35,16 @@ export const validateFields = (object, fields) => {
 }
 
 export const verifyApiKey = async (req, res, next) => {
-  const apiKey = req.headers['authorization']
+  const authHeader = req.headers['authorization']
 
-  if (apiKey) {
-    const maker = await Maker.findOne({ where: { apiKey } })
-    req.maker = maker
+  if (authHeader) {
+    const [makerId, apiKey] = authHeader.split(':')
+    if (makerId && apiKey) {
+      const maker = await Maker.scope('withApiKey').findByPk(makerId)
+      if (maker && bcrypt.compareSync(apiKey, maker.apiKey)) {
+        req.maker = maker
+      }
+    }
   }
 
   next()

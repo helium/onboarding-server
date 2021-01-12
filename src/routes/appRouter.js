@@ -7,8 +7,8 @@ import { successResponse } from '../helpers'
 
 const router = express.Router()
 
-const username = process.env.APP_USERNAME || 'app_user'
-const password = process.env.APP_PASSWORD || 'app_password'
+const username = process.env.APP_USERNAME
+const password = process.env.APP_PASSWORD
 
 router.use(
   basicAuth({

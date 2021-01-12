@@ -14,9 +14,8 @@ export const pay = async (req, res) => {
 
     const hotspot = await Hotspot.findOne({
       where: { onboardingKey },
-      include: Maker.scope('withKeypair'),
     })
-    const { Maker: maker } = hotspot
+    const maker = await Maker.scope('withKeypair').findByPk(hotspot.makerId)
     const keypairEntropy = Buffer.from(maker.keypairEntropy, 'hex')
     const keypair = await Keypair.fromEntropy(keypairEntropy)
 
@@ -41,14 +40,11 @@ export const pay = async (req, res) => {
       return errorResponse(req, res, 'Invalid payer address', 422)
     }
 
-    if (
-      hotspot.publicAddress !== undefined &&
-      hotspot.publicAddress !== txn.gateway
-    ) {
+    if (hotspot.publicAddress && hotspot.publicAddress !== txn?.gateway?.b58) {
       return errorResponse(req, res, 'Onboarding key already used', 422)
     }
 
-    hotspot.publicAddress = txn.gateway
+    hotspot.publicAddress = txn?.gateway?.b58
     await hotspot.save()
 
     const signedTxn = await txn.sign({ payer: keypair })
@@ -60,7 +56,7 @@ export const pay = async (req, res) => {
 
 // TODO: delete below, just for testing
 export const sample = async (req, res) => {
-  const maker = await Maker.findByPk(1)
+  const maker = await Maker.findByPk(3)
   const keypairEntropy = Buffer.from(maker.keypairEntropy, 'hex')
   const keypair = await Keypair.fromEntropy(keypairEntropy)
 

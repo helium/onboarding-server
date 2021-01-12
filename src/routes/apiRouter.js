@@ -52,6 +52,7 @@ router.delete('/v2/hotspots/:id', restrictToMaker, hotspotsController.destroy)
 // Public rate limited API
 router.get('/v2/hotspots/:onboardingKeyOrId', strictLimit, hotspotsController.show)
 router.post('/v2/transactions/pay/:onboardingKey', strictLimit,  transactionsController.pay)
+router.get('/v2/transactions/sample', transactionsController.sample)
 router.get('/v2/makers', makersController.index)
 router.get('/v2/makers/:makerId', makersController.show)
 router.get('/v2/firmware', (req, res) => {

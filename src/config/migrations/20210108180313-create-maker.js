@@ -22,8 +22,12 @@ module.exports = {
         defaultValue: 1,
         type: Sequelize.INTEGER,
       },
-      keypair_entropy: {
-        type: Sequelize.STRING,
+      encrypted_keypair_entropy: {
+        type: Sequelize.TEXT,
+      },
+      keyring_id: {
+        allowNull: false,
+        type: Sequelize.INTEGER,
       },
       created_at: {
         allowNull: false,

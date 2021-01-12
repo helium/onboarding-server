@@ -1,11 +1,8 @@
 #!/usr/bin/env node
 
-// require('@babel/register')
-
 /**
  * Module dependencies.
  */
-
 import app from './app'
 var debug = require('debug')('onboarding-server:server');
 var http = require('http');
