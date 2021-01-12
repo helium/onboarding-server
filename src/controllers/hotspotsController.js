@@ -1,13 +1,23 @@
 import snakeCaseKeys from 'snakecase-keys'
 import { Op } from 'sequelize'
 import { Hotspot } from '../models'
-import { errorResponse, successResponse } from '../helpers'
+import { errorResponse, paginate, successResponse } from '../helpers'
 
 export const index = async (req, res) => {
   try {
     const { maker } = req
-    const hotspots = await Hotspot.findAll({ where: { makerId: maker.id } })
-    return successResponse(req, res, hotspots)
+    const page = req.query.page ? parseInt(req.query.page) : 0
+    const pageSize = req.query.pageSize ? parseInt(req.query.pageSize) : 100
+
+    const hotspots = await Hotspot.findAll({
+      where: { makerId: maker.id },
+      ...paginate({ page, pageSize }),
+    })
+
+    return successResponse(req, res, hotspots, 200, {
+      page,
+      pageSize,
+    })
   } catch (error) {
     errorResponse(req, res, error.message, 500, error.errors)
   }

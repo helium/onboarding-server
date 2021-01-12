@@ -1,10 +1,11 @@
 import { Maker } from '../models'
 
-export const successResponse = (req, res, data, code = 200) =>
+export const successResponse = (req, res, data, code = 200, meta) =>
   res.send({
     code,
     data,
     success: true,
+    ...(meta !== undefined && { meta }),
   })
 
 export const errorResponse = (
@@ -36,7 +37,7 @@ export const verifyApiKey = async (req, res, next) => {
   const apiKey = req.headers['authorization']
 
   if (apiKey) {
-    const maker = await Maker.findOne({ where: { apiKey }})
+    const maker = await Maker.findOne({ where: { apiKey } })
     req.maker = maker
   }
 
@@ -49,5 +50,15 @@ export const restrictToMaker = (req, res, next) => {
   } else {
     // Forbidden
     res.sendStatus(403)
+  }
+}
+
+export const paginate = ({ page = 0, pageSize = 100 }) => {
+  const offset = page * pageSize
+  const limit = pageSize
+
+  return {
+    offset,
+    limit,
   }
 }
