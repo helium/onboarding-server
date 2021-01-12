@@ -38,15 +38,18 @@ export const pay = async (req, res) => {
     }
 
     if (txn?.payer?.b58 !== maker.address) {
-      throw new Error('Invalid payer address')
+      return errorResponse(req, res, 'Invalid payer address', 422)
     }
 
     if (
       hotspot.publicAddress !== undefined &&
       hotspot.publicAddress !== txn.gateway
     ) {
-      throw new Error('Onboarding key already used by different Hotspot')
+      return errorResponse(req, res, 'Onboarding key already used', 422)
     }
+
+    hotspot.publicAddress = txn.gateway
+    await hotspot.save()
 
     const signedTxn = await txn.sign({ payer: keypair })
     return successResponse(req, res, { txn: signedTxn.toString() })
