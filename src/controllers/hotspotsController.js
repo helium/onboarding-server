@@ -149,7 +149,7 @@ export const destroy = async (req, res) => {
       return errorResponse(req, res, 'Hotspot is immutable', 422)
     }
 
-    hotspot.destroy()
+    await hotspot.destroy()
     return successResponse(req, res, {}, 200)
   } catch (error) {
     errorResponse(req, res, error.message, 500, error.errors)
