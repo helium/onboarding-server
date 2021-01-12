@@ -1,3 +1,5 @@
+import { Maker } from '../models'
+
 export const successResponse = (req, res, data, code = 200) =>
   res.send({
     code,
@@ -28,4 +30,24 @@ export const validateFields = (object, fields) => {
     }
   })
   return errors.length ? `${errors.join(', ')} are required fields.` : ''
+}
+
+export const verifyApiKey = async (req, res, next) => {
+  const apiKey = req.headers['authorization']
+
+  if (apiKey) {
+    const maker = await Maker.findOne({ where: { apiKey }})
+    req.maker = maker
+  }
+
+  next()
+}
+
+export const restrictToMaker = (req, res, next) => {
+  if (req.maker) {
+    next()
+  } else {
+    // Forbidden
+    res.sendStatus(403)
+  }
 }

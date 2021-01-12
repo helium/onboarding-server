@@ -3,7 +3,7 @@ import rateLimit from 'express-rate-limit'
 import * as transactionsController from '../controllers/transactionsController'
 import * as makersController from '../controllers/makersController'
 import * as hotspotsController from '../controllers/hotspotsController'
-import { successResponse } from '../helpers'
+import { restrictToMaker, successResponse, verifyApiKey } from '../helpers'
 
 const REQUIRED_FIRMWARE_VERSION = '2019.11.06.0'
 
@@ -16,15 +16,23 @@ const numberEnv = (envName, fallback) => {
   return fallback
 }
 
-const limiter = rateLimit({
-  windowMs: numberEnv('RATE_LIMIT_WINDOW', 15 * 60 * 1000), // 15 minutes
-  max: numberEnv('RATE_LIMIT_MAX', 100) // limit each IP to 100 requests per windowMs
+const strictLimit = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 10,
+  skip: (req, res) => req.maker,
 })
 
-router.use(limiter)
+router.use(verifyApiKey)
+router.use(
+  rateLimit({
+    windowMs: numberEnv('RATE_LIMIT_WINDOW', 15 * 60 * 1000), // 15 minutes
+    max: numberEnv('RATE_LIMIT_MAX', 3),
+    skip: (req, res) => req.maker,
+  }),
+)
 
 // Legacy CLI Support (2020)
-router.post('/v1/transactions/pay/:onboardingKey', transactionsController.pay)
+router.post('/v1/transactions/pay/:onboardingKey', strictLimit, transactionsController.pay)
 router.get('/v1/limits', (req, res) => {
   return successResponse(req, res, { location_nonce: 3 })
 })
@@ -34,8 +42,16 @@ router.get('/v1/address', (req, res) => {
 })
 
 // V2 (Q1 2021)
-router.get('/v2/hotspots/:onboardingKey', hotspotsController.show)
-router.post('/v2/transactions/pay/:onboardingKey', transactionsController.pay)
+// Restricted Maker API
+router.get('/v2/hotspots', restrictToMaker, hotspotsController.index)
+router.get('/v2/hotspots/search', restrictToMaker, hotspotsController.search)
+router.post('/v2/hotspots', restrictToMaker, hotspotsController.create)
+router.put('/v2/hotspots/:id', restrictToMaker, hotspotsController.update)
+router.delete('/v2/hotspots/:id', restrictToMaker, hotspotsController.destroy)
+
+// Public rate limited API
+router.get('/v2/hotspots/:onboardingKeyOrId', strictLimit, hotspotsController.show)
+router.post('/v2/transactions/pay/:onboardingKey', strictLimit,  transactionsController.pay)
 router.get('/v2/makers', makersController.index)
 router.get('/v2/makers/:makerId', makersController.show)
 router.get('/v2/firmware', (req, res) => {
