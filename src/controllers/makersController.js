@@ -30,6 +30,15 @@ export const legacyAddress = async (req, res) => {
   }
 }
 
+export const legacyLimits = async (req, res) => {
+  try {
+    const maker = await Maker.findByPk(1)
+    return res.json({ location_nonce: maker.locationNonceLimit + 1 })
+  } catch (error) {
+    errorResponse(req, res, error.message, 500, error.errors)
+  }
+}
+
 export const create = async (req, res) => {
   try {
     const { name, locationNonceLimit } = req.body
