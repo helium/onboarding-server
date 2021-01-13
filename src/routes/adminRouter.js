@@ -1,7 +1,7 @@
 import express from 'express'
 import basicAuth from 'express-basic-auth'
 import * as makersController from '../controllers/makersController'
-import * as hotspotsController from '../controllers/hotspotsController'
+import * as tokensController from '../controllers/tokensController'
 
 const router = express.Router()
 
@@ -15,6 +15,6 @@ router.use(
 )
 
 router.post('/makers', makersController.create)
-router.post('/hotspots', hotspotsController.create)
+router.post('/makers/:id/tokens', tokensController.create)
 
 module.exports = router

@@ -1,6 +1,5 @@
 import { Model } from 'sequelize'
 import { keyring } from '@fnando/keyring'
-import bcrypt from 'bcryptjs'
 
 const keys = JSON.parse(process.env.KEYRING)
 const digestSalt = process.env.KEYRING_SALT
@@ -9,13 +8,13 @@ module.exports = (sequelize, DataTypes) => {
   class Maker extends Model {
     static associate(models) {
       this.hotspots = this.hasMany(models.Hotspot)
+      this.tokens = this.hasMany(models.Token)
     }
   }
   Maker.init(
     {
       name: DataTypes.STRING,
       address: DataTypes.STRING,
-      apiKey: DataTypes.STRING,
       locationNonceLimit: DataTypes.INTEGER,
       encryptedKeypairEntropy: DataTypes.TEXT,
       keypairEntropy: DataTypes.VIRTUAL,
@@ -27,13 +26,12 @@ module.exports = (sequelize, DataTypes) => {
       tableName: 'makers',
       underscored: true,
       hooks: {
-        beforeSave: (record, options) => {
+        beforeCreate: (record) => {
           const encryptor = keyring(keys, { digestSalt })
           const { keypairEntropy } = record
 
           record.keyringId = encryptor.currentId()
           record.encryptedKeypairEntropy = encryptor.encrypt(keypairEntropy)
-          record.apiKey = bcrypt.hashSync(record.apiKey, 10)
         },
         afterFind: (record) => {
           if (!record) return
@@ -49,15 +47,10 @@ module.exports = (sequelize, DataTypes) => {
       },
       defaultScope: {
         attributes: {
-          exclude: ['keypairEntropy', 'encryptedKeypairEntropy', 'apiKey'],
+          exclude: ['keypairEntropy', 'encryptedKeypairEntropy'],
         },
       },
       scopes: {
-        withApiKey: {
-          attributes: {
-            include: ['apiKey'],
-          }
-        },
         withKeypair: {
           attributes: {
             include: ['keypairEntropy', 'encryptedKeypairEntropy'],

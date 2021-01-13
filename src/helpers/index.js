@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs'
-import { Maker } from '../models'
+import { Maker, Token } from '../models'
 
 export const successResponse = (req, res, data, code = 200, meta) =>
   res.send({
@@ -38,11 +38,16 @@ export const verifyApiKey = async (req, res, next) => {
   const authHeader = req.headers['authorization']
 
   if (authHeader) {
-    const [makerId, apiKey] = authHeader.split(':')
-    if (makerId && apiKey) {
-      const maker = await Maker.scope('withApiKey').findByPk(makerId)
-      if (maker && bcrypt.compareSync(apiKey, maker.apiKey)) {
-        req.maker = maker
+    const [publicToken, secretToken] = authHeader.split(':')
+    if (publicToken && secretToken) {
+      const token = await Token.findOne({ where: { publicToken }})
+      if (token && bcrypt.compareSync(secretToken, token.secretToken)) {
+        const maker = await Maker.findByPk(token.makerId)
+        token.lastUsedAt = new Date()
+        token.save()
+        if (maker) {
+          req.maker = maker
+        }
       }
     }
   }
@@ -54,8 +59,7 @@ export const restrictToMaker = (req, res, next) => {
   if (req.maker) {
     next()
   } else {
-    // Forbidden
-    res.sendStatus(403)
+    res.sendStatus(403) // Forbidden
   }
 }
 
