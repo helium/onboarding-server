@@ -33,12 +33,9 @@ router.use(
 
 // Legacy CLI Support (2020)
 router.post('/v1/transactions/pay/:onboardingKey', strictLimit, transactionsController.pay)
+router.get('/v1/address', makersController.legacyAddress)
 router.get('/v1/limits', (req, res) => {
   return successResponse(req, res, { location_nonce: 3 })
-})
-router.get('/v1/address', (req, res) => {
-  // TODO hardcode the helium inc maker address here
-  throw new Error('TODO')
 })
 
 // V2 (Q1 2021)
