@@ -48,7 +48,7 @@ export const pay = async (req, res) => {
     await hotspot.save()
 
     const signedTxn = await txn.sign({ payer: keypair })
-    return successResponse(req, res, { txn: signedTxn.toString() })
+    return successResponse(req, res, { transaction: signedTxn.toString() })
   } catch (error) {
     errorResponse(req, res, error.message, 500, error.errors)
   }
