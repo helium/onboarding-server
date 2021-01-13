@@ -18,6 +18,11 @@ const numberEnv = (envName, fallback) => {
   return fallback
 }
 
+let redisClient
+if (process.env.REDIS_URL) {
+  redisClient = new Redis(process.env.REDIS_URL)
+}
+
 const strictLimitOpts = {
   windowMs: 10 * 60 * 1000,
   max: 10,
@@ -25,7 +30,7 @@ const strictLimitOpts = {
 }
 if (process.env.REDIS_URL) {
   strictLimitOpts.store = new RedisStore({
-    client: new Redis(process.env.REDIS_URL),
+    client: redisClient,
   })
 }
 const strictLimit = rateLimit(strictLimitOpts)
@@ -37,7 +42,7 @@ const defaultLimitOpts = {
 }
 if (process.env.REDIS_URL) {
   defaultLimitOpts.store = new RedisStore({
-    client: new Redis(process.env.REDIS_URL),
+    client: redisClient,
   })
 }
 const defaultLimit = rateLimit(defaultLimitOpts)
