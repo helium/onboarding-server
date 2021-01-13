@@ -1,6 +1,8 @@
-var express = require('express')
-var cookieParser = require('cookie-parser')
-var logger = require('morgan')
+const express = require('express')
+const cookieParser = require('cookie-parser')
+const logger = require('morgan')
+const compression = require('compression')
+const env = process.env.NODE_ENV || 'development'
 
 import indexRouter from './routes/indexRouter'
 import apiRouter from './routes/apiRouter'
@@ -9,7 +11,22 @@ import adminRouter from './routes/adminRouter'
 
 var app = express()
 
-app.set('trust proxy', 1)
+if (env === 'production') {
+  app.enable('trust proxy')
+  app.use(compression())
+
+  // Enforce SSL & HSTS in production
+  app.use((req, res, nextPlug) => {
+    const proto = req.headers['x-forwarded-proto']
+    if (proto === 'https') {
+      res.set({
+        'Strict-Transport-Security': 'max-age=31557600', // one-year
+      })
+      return nextPlug()
+    }
+    res.redirect(`https://${req.headers.host}${req.url}`)
+  })
+}
 
 app.use(logger('dev'))
 app.use(express.json())
