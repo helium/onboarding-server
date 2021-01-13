@@ -1,5 +1,7 @@
 import express from 'express'
 import rateLimit from 'express-rate-limit'
+import RedisStore from 'rate-limit-redis'
+import Redis from 'ioredis'
 import * as transactionsController from '../controllers/transactionsController'
 import * as makersController from '../controllers/makersController'
 import * as hotspotsController from '../controllers/hotspotsController'
@@ -16,23 +18,39 @@ const numberEnv = (envName, fallback) => {
   return fallback
 }
 
-const strictLimit = rateLimit({
+const strictLimitOpts = {
   windowMs: 10 * 60 * 1000,
   max: 10,
   skip: (req, res) => req.maker,
-})
+}
+if (process.env.REDIS_URL) {
+  strictLimitOpts.store = new RedisStore({
+    client: new Redis(process.env.REDIS_URL),
+  })
+}
+const strictLimit = rateLimit(strictLimitOpts)
+
+const defaultLimitOpts = {
+  windowMs: numberEnv('RATE_LIMIT_WINDOW', 15 * 60 * 1000), // 15 minutes
+  max: numberEnv('RATE_LIMIT_MAX', 3),
+  skip: (req, res) => req.maker,
+}
+if (process.env.REDIS_URL) {
+  defaultLimitOpts.store = new RedisStore({
+    client: new Redis(process.env.REDIS_URL),
+  })
+}
+const defaultLimit = rateLimit(defaultLimitOpts)
 
 router.use(verifyApiKey)
-router.use(
-  rateLimit({
-    windowMs: numberEnv('RATE_LIMIT_WINDOW', 15 * 60 * 1000), // 15 minutes
-    max: numberEnv('RATE_LIMIT_MAX', 3),
-    skip: (req, res) => req.maker,
-  }),
-)
+router.use(defaultLimit)
 
 // Legacy CLI Support (2020)
-router.post('/v1/transactions/pay/:onboardingKey', strictLimit, transactionsController.pay)
+router.post(
+  '/v1/transactions/pay/:onboardingKey',
+  strictLimit,
+  transactionsController.pay,
+)
 router.get('/v1/address', makersController.legacyAddress)
 router.get('/v1/limits', (req, res) => {
   return successResponse(req, res, { location_nonce: 3 })
@@ -47,8 +65,16 @@ router.put('/v2/hotspots/:id', restrictToMaker, hotspotsController.update)
 router.delete('/v2/hotspots/:id', restrictToMaker, hotspotsController.destroy)
 
 // Public rate limited API
-router.get('/v2/hotspots/:onboardingKeyOrId', strictLimit, hotspotsController.show)
-router.post('/v2/transactions/pay/:onboardingKey', strictLimit,  transactionsController.pay)
+router.get(
+  '/v2/hotspots/:onboardingKeyOrId',
+  strictLimit,
+  hotspotsController.show,
+)
+router.post(
+  '/v2/transactions/pay/:onboardingKey',
+  strictLimit,
+  transactionsController.pay,
+)
 router.get('/v2/transactions/sample', transactionsController.sample)
 router.get('/v2/makers', makersController.index)
 router.get('/v2/makers/:makerId', makersController.show)
