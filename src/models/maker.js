@@ -47,13 +47,13 @@ module.exports = (sequelize, DataTypes) => {
       },
       defaultScope: {
         attributes: {
-          exclude: ['keypairEntropy', 'encryptedKeypairEntropy'],
+          exclude: ['keypairEntropy', 'encryptedKeypairEntropy', 'keyringId'],
         },
       },
       scopes: {
         withKeypair: {
           attributes: {
-            include: ['keypairEntropy', 'encryptedKeypairEntropy'],
+            include: ['keypairEntropy', 'encryptedKeypairEntropy', 'keyringId'],
           },
         },
       },
