@@ -1,6 +1,7 @@
 import snakeCaseKeys from 'snakecase-keys'
 import { Op } from 'sequelize'
-import { Hotspot } from '../models'
+import { merge } from 'lodash'
+import { Hotspot, Maker } from '../models'
 import { errorResponse, paginate, successResponse } from '../helpers'
 
 export const index = async (req, res) => {
@@ -26,8 +27,31 @@ export const index = async (req, res) => {
 export const showLegacy = async (req, res) => {
   try {
     const { onboardingKey } = req.params
-    const hotspot = await Hotspot.findOne({ where: { onboardingKey } })
-    return successResponse(req, res, snakeCaseKeys(hotspot.toJSON()))
+    const hotspot = await Hotspot.findOne({
+      where: { onboardingKey },
+      include: [{ model: Maker }],
+    })
+    const hotspotJSON = merge(hotspot.toJSON(), {
+      maker: { locationNonceLimit: hotspot.Maker.locationNonceLimit + 1 },
+    })
+    return successResponse(req, res, snakeCaseKeys(hotspotJSON))
+  } catch (error) {
+    errorResponse(req, res, error.message, 500, error.errors)
+  }
+}
+
+export const show = async (req, res) => {
+  try {
+    const { maker } = req
+    const { onboardingKeyOrId } = req.params
+    const where = maker
+      ? { [Op.and]: [{ id: onboardingKeyOrId }, { makerId: maker.id }] }
+      : { onboardingKey: onboardingKeyOrId }
+    const hotspot = await Hotspot.findOne({
+      where,
+      include: [{ model: Maker }],
+    })
+    return successResponse(req, res, hotspot)
   } catch (error) {
     errorResponse(req, res, error.message, 500, error.errors)
   }
@@ -49,20 +73,6 @@ export const search = async (req, res) => {
       },
     })
 
-    return successResponse(req, res, hotspot)
-  } catch (error) {
-    errorResponse(req, res, error.message, 500, error.errors)
-  }
-}
-
-export const show = async (req, res) => {
-  try {
-    const { maker } = req
-    const { onboardingKeyOrId } = req.params
-    const where = maker
-      ? { [Op.and]: [{ id: onboardingKeyOrId }, { makerId: maker.id }] }
-      : { onboardingKey: onboardingKeyOrId }
-    const hotspot = await Hotspot.findOne({ where })
     return successResponse(req, res, hotspot)
   } catch (error) {
     errorResponse(req, res, error.message, 500, error.errors)
