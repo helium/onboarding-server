@@ -1,6 +1,5 @@
 import snakeCaseKeys from 'snakecase-keys'
 import { Op } from 'sequelize'
-import { merge } from 'lodash'
 import { Hotspot, Maker } from '../models'
 import { errorResponse, paginate, successResponse } from '../helpers'
 
@@ -31,9 +30,8 @@ export const showLegacy = async (req, res) => {
       where: { onboardingKey },
       include: [{ model: Maker }],
     })
-    const hotspotJSON = merge(hotspot.toJSON(), {
-      maker: { locationNonceLimit: hotspot.Maker.locationNonceLimit + 1 },
-    })
+    hotspot.Maker.locationNonceLimit = hotspot.Maker.locationNonceLimit + 1
+    const hotspotJSON = hotspot.toJSON()
     return successResponse(req, res, snakeCaseKeys(hotspotJSON))
   } catch (error) {
     errorResponse(req, res, error.message, 500, error.errors)

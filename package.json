@@ -32,7 +32,6 @@
     "express-basic-auth": "^1.2.0",
     "express-rate-limit": "^5.2.3",
     "ioredis": "^4.19.4",
-    "lodash": "^4.17.20",
     "morgan": "~1.9.1",
     "pg": "^8.5.1",
     "pg-hstore": "^2.3.3",
