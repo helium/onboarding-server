@@ -1,4 +1,5 @@
 import snakeCaseKeys from 'snakecase-keys'
+import camelcaseKeys from 'camelcase-keys'
 import { Op } from 'sequelize'
 import { Hotspot, Maker } from '../models'
 import { errorResponse, paginate, successResponse } from '../helpers'
@@ -49,7 +50,8 @@ export const show = async (req, res) => {
       where,
       include: [{ model: Maker }],
     })
-    return successResponse(req, res, hotspot)
+    const hotspotJSON = hotspot.toJSON()
+    return successResponse(req, res, camelcaseKeys(hotspotJSON))
   } catch (error) {
     errorResponse(req, res, error.message, 500, error.errors)
   }
