@@ -2,6 +2,7 @@ import express from 'express'
 import rateLimit from 'express-rate-limit'
 import RedisStore from 'rate-limit-redis'
 import Redis from 'ioredis'
+import cors from 'cors'
 import * as transactionsController from '../controllers/transactionsController'
 import * as makersController from '../controllers/makersController'
 import * as hotspotsController from '../controllers/hotspotsController'
@@ -10,6 +11,9 @@ import { restrictToMaker, successResponse, verifyApiKey } from '../helpers'
 const REQUIRED_FIRMWARE_VERSION = '2019.11.06.0'
 
 const router = express.Router()
+
+router.use(cors())
+router.options('*', cors())
 
 const numberEnv = (envName, fallback) => {
   if (process.env[envName]) {
