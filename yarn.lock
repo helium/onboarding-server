@@ -869,6 +869,15 @@
   resolved "https://registry.yarnpkg.com/@fnando/keyring/-/keyring-0.4.0.tgz#b16c4b2968c23ddbdd5d4f7fecb3050c3fcdbeaa"
   integrity sha512-yHRj8bGjlRavlU5EhpKapg44laxpB8KeKSCNFxSyEGiz/jAq38qtR+pzmg3aeBNW6SHyBsObQGvaAhwn/PmUJQ==
 
+"@helium/crypto@^3.24.0":
+  version "3.24.0"
+  resolved "https://registry.yarnpkg.com/@helium/crypto/-/crypto-3.24.0.tgz#5aa88945a0c646ae5f38e5bd8560a5fd18ee2157"
+  integrity sha512-XUk2oJOEPYx5LN+NyNw1Y/jhIum+NaZEeZLjvqNAtgEqgVlEkPKcZNc1vJwb7r1qftY92O6P0owRTC2vhexmUg==
+  dependencies:
+    bs58 "^4.0.1"
+    create-hash "^1.2.0"
+    libsodium-wrappers "^0.7.6"
+
 "@helium/crypto@^3.7.0":
   version "3.7.0"
   resolved "https://registry.yarnpkg.com/@helium/crypto/-/crypto-3.7.0.tgz#9645cad30443582a3cf646457419d8480add785a"
@@ -878,20 +887,20 @@
     create-hash "^1.2.0"
     libsodium-wrappers "^0.7.6"
 
-"@helium/proto@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/@helium/proto/-/proto-1.2.0.tgz#58ec69569bdb53e3377ea7e59acbd426a0d28f14"
-  integrity sha512-Dcqvf/4l1yIIu/43vxUw6fujrRlP+9kqkRzbQ/CUWyPlhYw96v/QU19b6KX7kwEAF4h9lO08yHqqIohNejeatg==
+"@helium/proto@^1.3.0":
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/@helium/proto/-/proto-1.3.0.tgz#68657f6c11bdafc9a6cf2920ccd535c5ae244064"
+  integrity sha512-zzkNXDpSeLTrP3U2uBuqkYe2OhlCd8EJi7mowM44XBvba/hx8kHUY53ss3gTJamNpCh8NdbXQtjdCqfg3pQZSg==
   dependencies:
     protobufjs "^6.8.9"
 
-"@helium/transactions@^3.15.0":
-  version "3.15.0"
-  resolved "https://registry.yarnpkg.com/@helium/transactions/-/transactions-3.15.0.tgz#d7fb95e623b2962d60f2c4692f74e17fd8d0b502"
-  integrity sha512-vvTOfiVsITbx8MLAQoKoOjwua99uHoZTkq1ru/q2oXap6Qkr2bYurk7J7GirQHROhr14ZcxFzAGSR1vM0a/ydA==
+"@helium/transactions@^3.27.0":
+  version "3.27.0"
+  resolved "https://registry.yarnpkg.com/@helium/transactions/-/transactions-3.27.0.tgz#ee7bbf487f34c6f76ef055d59dc9b642f4aaf2e7"
+  integrity sha512-3gu/EvotVx8VV8zqaQf2ZotyRhpqVW1i8aJtJGRQq6elmfcAXNmADqmNhvK6W2K3/XICJWHfI4HGMPeXkm4iaw==
   dependencies:
-    "@helium/crypto" "^3.7.0"
-    "@helium/proto" "^1.2.0"
+    "@helium/crypto" "^3.24.0"
+    "@helium/proto" "^1.3.0"
     "@types/libsodium-wrappers" "^0.7.8"
     long "^4.0.0"
     path "^0.12.7"
