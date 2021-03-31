@@ -3,9 +3,11 @@ import {
   Transaction,
   AddGatewayV1,
   AssertLocationV1,
+  AssertLocationV2,
 } from '@helium/transactions'
 import { Maker, Hotspot } from '../models'
 import { errorResponse, successResponse } from '../helpers'
+import { Op } from 'sequelize'
 
 export const pay = async (req, res) => {
   try {
@@ -13,7 +15,7 @@ export const pay = async (req, res) => {
     const { transaction } = req.body
 
     const hotspot = await Hotspot.findOne({
-      where: { onboardingKey },
+      where: { [Op.or]: [{ onboardingKey }, { publicAddress: onboardingKey }] },
     })
     const maker = await Maker.scope('withKeypair').findByPk(hotspot.makerId)
     const keypairEntropy = Buffer.from(maker.keypairEntropy, 'hex')
@@ -27,6 +29,13 @@ export const pay = async (req, res) => {
 
       case 'assertLocation':
         txn = AssertLocationV1.fromString(transaction)
+        if (txn.nonce > maker.locationNonceLimit) {
+          return errorResponse(req, res, 'Nonce limit exceeded', 422)
+        }
+        break
+
+      case 'assertLocationV2':
+        txn = AssertLocationV2.fromString(transaction)
         if (txn.nonce > maker.locationNonceLimit) {
           return errorResponse(req, res, 'Nonce limit exceeded', 422)
         }

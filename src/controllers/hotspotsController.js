@@ -45,7 +45,12 @@ export const show = async (req, res) => {
     const { onboardingKeyOrId } = req.params
     const where = maker
       ? { [Op.and]: [{ id: onboardingKeyOrId }, { makerId: maker.id }] }
-      : { onboardingKey: onboardingKeyOrId }
+      : {
+          [Op.or]: [
+            { onboardingKey: onboardingKeyOrId },
+            { publicAddress: onboardingKeyOrId },
+          ],
+        }
     const hotspot = await Hotspot.findOne({
       where,
       include: [{ model: Maker }],
