@@ -55,6 +55,9 @@ export const show = async (req, res) => {
       where,
       include: [{ model: Maker }],
     })
+    if (!hotspot) {
+      return errorResponse(req, res, 'Unable to find hotspot', 404)
+    }
     const hotspotJSON = hotspot.toJSON()
     return successResponse(req, res, camelcaseKeys(hotspotJSON))
   } catch (error) {

@@ -16,7 +16,7 @@ export const errorResponse = (
   code = 500,
   errors = [],
 ) =>
-  res.status(500).json({
+  res.status(code).json({
     code,
     errorMessage,
     errors,
