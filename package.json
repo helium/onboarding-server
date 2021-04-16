@@ -22,7 +22,7 @@
     "@babel/preset-env": "^7.12.11",
     "@fnando/keyring": "^0.4.0",
     "@helium/crypto": "^3.7.0",
-    "@helium/transactions": "^3.27.0",
+    "@helium/transactions": "^3.30.0",
     "bcryptjs": "^2.4.3",
     "camelcase-keys": "^6.2.2",
     "compression": "^1.7.4",
