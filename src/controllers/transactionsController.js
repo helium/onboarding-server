@@ -68,7 +68,7 @@ export const pay = async (req, res) => {
     // Starting after hotspot 32951, it's required that the onboarding key
     // match the txn gateway address
     if (hotspot.id > 32951 && txn?.gateway?.b58 !== onboardingKey) {
-      return errorResponse(req, res, 'Invalid gateway address', 422)
+      return errorResponse(req, res, 'Invalid hotspot address', 422)
     }
 
     // Once an onboarding key has been associated with a hotspot's public
