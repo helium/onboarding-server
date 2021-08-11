@@ -93,8 +93,11 @@ export const pay = async (req, res) => {
   }
 }
 
-// TODO: delete below, just for testing
 export const sample = async (req, res) => {
+  if (env === 'production') {
+    return errorResponse(req, res, 'Not available', 422)
+  }
+
   const maker = await Maker.scope('withKeypair').findByPk(1)
   const keypairEntropy = Buffer.from(maker.keypairEntropy, 'hex')
   const keypair = await Keypair.fromEntropy(keypairEntropy)
