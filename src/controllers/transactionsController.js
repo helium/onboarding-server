@@ -49,6 +49,10 @@ export const pay = async (req, res) => {
       return errorResponse(req, res, 'Invalid payer address', 422)
     }
 
+    if (hotspot.id > 32951 && txn?.gateway?.b58 !== onboardingKey) {
+      return errorResponse(req, res, 'Invalid gateway address', 422)
+    }
+
     if (hotspot.publicAddress && hotspot.publicAddress !== txn?.gateway?.b58) {
       return errorResponse(req, res, 'Onboarding key already used', 422)
     }
