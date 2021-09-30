@@ -3,15 +3,71 @@ The onboarding server allows makers to manage their hotspot production and permi
 
 ## Development
 
-TODO
+Before running the following commands, make sure to have a running postgres db instance.
+
+- clone the repo
+- run `yarn install`
+- initialize the database with `yarn db:create`
+- run the migrations with `yarn db:migrate`
+- run the dev server with `yarn dev`
+
+Once the dev server is running, create a maker account and maker api key by using the Admin API documented below. In development, the `.env` sets the admin username to `admin_user` and admin password to `admin_password` which means the authorization header is `Basic YWRtaW5fdXNlcjphZG1pbl9wYXNzd29yZA==`.
 
 ## Production
 
-TODO
+When running in production, make sure to set the following env vars to secure random values:
+
+| Environment Variable | Description                               | Example                                              |
+|----------------------|-------------------------------------------|------------------------------------------------------|
+| ADMIN_USERNAME       | Basic auth username for admin API         | CC7u1NozALZ0FQB/keVpwB+Lu/ZKrNlAmMFaVSKgqgg=         |
+| ADMIN_PASSWORD       | Basic auth password for admin API         | 0l4LD/wciATYEQJZVvMc1wM1MBFA65o6A0uTg0WZfNg=         |
+| KEYRING              | JSON keyring object                       | {"1":"2xNJEZvMlr99yPqGfh0sa7pO7j1tH73RTU9qJwwi4bs="} |
+| KEYRING_SALT         | Additional entropy for keyring encryption | WmcKZ46ciIZqTvXm9TMd5V63b8k6iw/tVkcv/qEI0KU=         |
+
+The recommended way of generating secure secrets is:
+
+```
+dd if=/dev/urandom bs=32 count=1 2>/dev/null | openssl base64 -A
+```
+
+Refer to [https://github.com/fnando/keyring-node](https://github.com/fnando/keyring-node) for additional details about how the at-rest encryption with keyring works.
+
+### Rate Limiting
+
+In production it is recommended to enable rate limiting to prevent nefarious users from scraping or brute forcing the APIs. Rate limiting relies on Redis to store IP addresses and request counts. Redis connection info is supplied through a `REDIS_URL` env var.
+
+### Heroku
+
+The onboarding server is configured to run on Heroku out of the box. It will use the nodejs buildpack, and comes with a Procfile that defines the web resource command as `npm start`. Additionally, the free Heroku Redis add-on can be installed and will automatically be picked up by the rate limiter. 
 
 ## Onboarding Server Admin API
 
-TODO
+### Create Maker
+
+Replace contents in `—data-raw` with desired attributes
+
+```
+curl --location --request POST 'https://onboarding.example.com/admin/makers' \
+--header 'Authorization: Basic xxxxxx' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "name": "Helium Inc",
+    "locationNonceLimit": 2
+}'
+```
+
+### Create Token
+
+Replace id in url with the maker id you want to create a token for
+
+```
+curl --location --request POST 'https://onboarding.example.com/admin/makers/1/tokens' \
+--header 'Authorization: Basic xxxxxxxxxxx' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+    "name": "Test token"
+}'
+```
 
 ## Onboarding Server Maker API
 
