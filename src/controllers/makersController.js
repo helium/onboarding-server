@@ -1,4 +1,3 @@
-import { Keypair, utils } from '@helium/crypto'
 import { Maker } from '../models'
 import { errorResponse, successResponse } from '../helpers'
 
@@ -34,31 +33,6 @@ export const legacyLimits = async (req, res) => {
   try {
     const maker = await Maker.findByPk(1)
     return res.json({ location_nonce: maker.locationNonceLimit + 1 })
-  } catch (error) {
-    errorResponse(req, res, error.message, 500, error.errors)
-  }
-}
-
-export const create = async (req, res) => {
-  try {
-    const { name, locationNonceLimit } = req.body
-    const keypairEntropy = await utils.randomBytes(32)
-    const keypair = await Keypair.fromEntropy(keypairEntropy)
-    const address = keypair.address.b58
-
-    const maker = await Maker.create({
-      name,
-      address,
-      keypairEntropy: keypairEntropy.toString('hex'),
-      locationNonceLimit: locationNonceLimit,
-    })
-
-    return successResponse(req, res, {
-      id: maker.id,
-      name: maker.name,
-      address: maker.address,
-      locationNonceLimit: maker.locationNonceLimit,
-    })
   } catch (error) {
     errorResponse(req, res, error.message, 500, error.errors)
   }

@@ -9,10 +9,8 @@
     "clean": "rimraf build",
     "db:create": "npx sequelize-cli db:create",
     "db:migrate": "npx sequelize-cli db:migrate",
-    "db:migrate:undo": "npx sequelize-cli db:migrate:undo"
-  },
-  "engines": {
-    "node": "15.x.x"
+    "db:migrate:undo": "npx sequelize-cli db:migrate:undo",
+    "task": "DISABLE_DB_LOGGING=true node -r dotenv/config"
   },
   "dependencies": {
     "@babel/cli": "^7.12.10",
@@ -37,6 +35,7 @@
     "morgan": "~1.9.1",
     "pg": "^8.5.1",
     "pg-hstore": "^2.3.3",
+    "prompts": "^2.4.2",
     "rate-limit-redis": "^2.0.0",
     "sequelize": "^6.3.5",
     "sequelize-cli": "^6.2.0",

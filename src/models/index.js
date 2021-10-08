@@ -6,6 +6,10 @@ const env = process.env.NODE_ENV || 'development'
 const config = require(__dirname + '/../config/config.json')[env]
 const db = {}
 
+if (process.env.DISABLE_DB_LOGGING === 'true') {
+  config.logging = false
+}
+
 let sequelize
 if (config.use_env_variable) {
   sequelize = new Sequelize(process.env[config.use_env_variable], config)

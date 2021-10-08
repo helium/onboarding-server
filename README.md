@@ -9,9 +9,9 @@ Before running the following commands, make sure to have a running postgres db i
 - run `yarn install`
 - initialize the database with `yarn db:create`
 - run the migrations with `yarn db:migrate`
+- run `yarn task src/tasks/create_maker.js` and follow the prompts to create or import a Maker record
 - run the dev server with `yarn dev`
-
-Once the dev server is running, create a maker account and maker api key by using the Admin API documented below. In development, the `.env` sets the admin username to `admin_user` and admin password to `admin_password` which means the authorization header is `Basic YWRtaW5fdXNlcjphZG1pbl9wYXNzd29yZA==`.
+- the dev server will be accessible at `localhost:3002`
 
 ## Production
 
@@ -19,8 +19,6 @@ When running in production, make sure to set the following env vars to secure ra
 
 | Environment Variable | Description                               | Example                                              |
 |----------------------|-------------------------------------------|------------------------------------------------------|
-| ADMIN_USERNAME       | Basic auth username for admin API         | CC7u1NozALZ0FQB/keVpwB+Lu/ZKrNlAmMFaVSKgqgg=         |
-| ADMIN_PASSWORD       | Basic auth password for admin API         | 0l4LD/wciATYEQJZVvMc1wM1MBFA65o6A0uTg0WZfNg=         |
 | KEYRING              | JSON keyring object                       | {"1":"2xNJEZvMlr99yPqGfh0sa7pO7j1tH73RTU9qJwwi4bs="} |
 | KEYRING_SALT         | Additional entropy for keyring encryption | WmcKZ46ciIZqTvXm9TMd5V63b8k6iw/tVkcv/qEI0KU=         |
 
@@ -40,34 +38,28 @@ In production it is recommended to enable rate limiting to prevent nefarious use
 
 The onboarding server is configured to run on Heroku out of the box. It will use the nodejs buildpack, and comes with a Procfile that defines the web resource command as `npm start`. Additionally, the free Heroku Redis add-on can be installed and will automatically be picked up by the rate limiter. 
 
-## Onboarding Server Admin API
+Admin tasks can be run on Heroku like so: `heroku run yarn task src/tasks/create_maker.js`
+
+## Admin Tasks
+
+The following tasks are included for managing admin functionality of the onboarding server:
 
 ### Create Maker
 
-Replace contents in `—data-raw` with desired attributes
+`yarn task src/tasks/create_maker.js`
 
-```
-curl --location --request POST 'https://onboarding.example.com/admin/makers' \
---header 'Authorization: Basic xxxxxx' \
---header 'Content-Type: application/json' \
---data-raw '{
-    "name": "Helium Inc",
-    "locationNonceLimit": 2
-}'
-```
-
+Creates a Maker account taking name, location nonce limit and optionally an exported wallet entropy string. You can also choose to create a Maker API token for the newly created Maker.
 ### Create Token
 
-Replace id in url with the maker id you want to create a token for
+`yarn task src/tasks/create_token.js`
 
-```
-curl --location --request POST 'https://onboarding.example.com/admin/makers/1/tokens' \
---header 'Authorization: Basic xxxxxxxxxxx' \
---header 'Content-Type: application/json' \
---data-raw '{
-    "name": "Test token"
-}'
-```
+Creates a Maker API token for the selected Maker.
+
+### Export Maker
+
+`yarn task src/tasks/export_maker.js`
+
+Exports the **unencrypted** wallet entropy seed to be imported into another onboarding server instance.
 
 ## Onboarding Server Maker API
 

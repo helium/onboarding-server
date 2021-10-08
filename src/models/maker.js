@@ -1,5 +1,5 @@
-import { Model } from 'sequelize'
-import { keyring } from '@fnando/keyring'
+const { Model } = require('sequelize')
+const { keyring } = require('@fnando/keyring')
 
 const keys = JSON.parse(process.env.KEYRING)
 const digestSalt = process.env.KEYRING_SALT

@@ -1,5 +1,5 @@
-import { Model } from 'sequelize'
-import bcrypt from 'bcryptjs'
+const { Model } = require('sequelize')
+const bcrypt = require('bcryptjs')
 
 module.exports = (sequelize, DataTypes) => {
   class Token extends Model {
