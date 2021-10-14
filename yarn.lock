@@ -869,38 +869,47 @@
   resolved "https://registry.yarnpkg.com/@fnando/keyring/-/keyring-0.4.0.tgz#b16c4b2968c23ddbdd5d4f7fecb3050c3fcdbeaa"
   integrity sha512-yHRj8bGjlRavlU5EhpKapg44laxpB8KeKSCNFxSyEGiz/jAq38qtR+pzmg3aeBNW6SHyBsObQGvaAhwn/PmUJQ==
 
-"@helium/crypto@^3.24.0":
-  version "3.24.0"
-  resolved "https://registry.yarnpkg.com/@helium/crypto/-/crypto-3.24.0.tgz#5aa88945a0c646ae5f38e5bd8560a5fd18ee2157"
-  integrity sha512-XUk2oJOEPYx5LN+NyNw1Y/jhIum+NaZEeZLjvqNAtgEqgVlEkPKcZNc1vJwb7r1qftY92O6P0owRTC2vhexmUg==
+"@helium/crypto@^3.38.0":
+  version "3.38.0"
+  resolved "https://registry.yarnpkg.com/@helium/crypto/-/crypto-3.38.0.tgz#b321f9a42b0e6144eb2044f0d05f6874d731fa85"
+  integrity sha512-dvmVaeTsk+05nBhbeqqWu0nugCeCrdX9A61YNxNxnb5NWYW6cAuIOuzutgTjr3v4MxZPtLEVyH9g8eWTQuCsug==
   dependencies:
     bs58 "^4.0.1"
     create-hash "^1.2.0"
     libsodium-wrappers "^0.7.6"
 
-"@helium/crypto@^3.7.0":
-  version "3.7.0"
-  resolved "https://registry.yarnpkg.com/@helium/crypto/-/crypto-3.7.0.tgz#9645cad30443582a3cf646457419d8480add785a"
-  integrity sha512-pcy/HyIdWlXNaETAN7QJgpIET9HTZ2AL1aVmm/fHVG5dx28FZFDmjIzxSAfhva2MqpLcYfvr6zNlR66V1pti4g==
+"@helium/currency@^3.25.1":
+  version "3.25.1"
+  resolved "https://registry.yarnpkg.com/@helium/currency/-/currency-3.25.1.tgz#83b6146b93423791c2b3f96188999d8c7447037b"
+  integrity sha512-qaF9KlCRW30XARgyVed1MZXQjrtNcsmCYow9yGHRBOGIE/RjY2lGaymH0OCSsE93SrDaD3rNqGGarHs1BF4thg==
   dependencies:
-    bs58 "^4.0.1"
-    create-hash "^1.2.0"
-    libsodium-wrappers "^0.7.6"
+    bignumber.js "^9.0.0"
 
-"@helium/proto@^1.3.0":
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/@helium/proto/-/proto-1.3.0.tgz#68657f6c11bdafc9a6cf2920ccd535c5ae244064"
-  integrity sha512-zzkNXDpSeLTrP3U2uBuqkYe2OhlCd8EJi7mowM44XBvba/hx8kHUY53ss3gTJamNpCh8NdbXQtjdCqfg3pQZSg==
+"@helium/http@^3.44.0":
+  version "3.44.0"
+  resolved "https://registry.yarnpkg.com/@helium/http/-/http-3.44.0.tgz#518feaa6d3c92e94fd3c9b93ed97622488263015"
+  integrity sha512-JQKnKnym8Vi57Jt00UBE2BCyHMO65aer52prSV9B+boJ9Eb3okYAIiRnNJwXKAjRjxRefF4ji4g8sXwnzFD3MQ==
+  dependencies:
+    "@helium/currency" "^3.25.1"
+    axios "^0.21.1"
+    camelcase-keys "^6.2.2"
+    qs "^6.9.3"
+    retry-axios "^2.1.2"
+
+"@helium/proto@^1.4.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@helium/proto/-/proto-1.5.0.tgz#bf42fad97d46c3e08653176dcf93b0d6b9633212"
+  integrity sha512-dP3M6rApsNG0fl7IZgYu0R0kxEbhZ/z6BhBoYdmCQDyX9FX+kNlzuPWMji4P9jUFcAs7UAXTZLHR5XATJifVPw==
   dependencies:
     protobufjs "^6.8.9"
 
-"@helium/transactions@^3.30.0":
-  version "3.30.0"
-  resolved "https://registry.yarnpkg.com/@helium/transactions/-/transactions-3.30.0.tgz#b0bdc20f08f6573271a05f37542c070ea0cefc54"
-  integrity sha512-LuZI7ybo4czDDXYEIqDreAdCH954Nj9MxIPDJxRAsChmWX7v76JTyAJUk5PYNgXePXL7Grl9+xRc4l+9jvKGqQ==
+"@helium/transactions@^3.38.0":
+  version "3.38.0"
+  resolved "https://registry.yarnpkg.com/@helium/transactions/-/transactions-3.38.0.tgz#c3b36d0e744e61b14c7585feb3e144476c93e49c"
+  integrity sha512-nFOEYGk102a+levjrSQLr94Dj3PYe/vyZMD8g/xPKx98uV47m6b1yzUwhr/Mm5+iUAJcCPo1gT/6UUGBi0+XWg==
   dependencies:
-    "@helium/crypto" "^3.24.0"
-    "@helium/proto" "^1.3.0"
+    "@helium/crypto" "^3.38.0"
+    "@helium/proto" "^1.4.0"
     "@types/libsodium-wrappers" "^0.7.8"
     long "^4.0.0"
     path "^0.12.7"
@@ -1117,6 +1126,13 @@ atob@^2.1.2:
   resolved "https://registry.yarnpkg.com/atob/-/atob-2.1.2.tgz#6d9517eb9e030d2436666651e86bd9f6f13533c9"
   integrity sha512-Wm6ukoaOGJi/73p/cl2GvLjTI5JM1k/O14isD73YML8StrH/7/lRFgmg8nICZgD3bZZvjwCGxtMOD3wWNAu8cg==
 
+axios@^0.21.1:
+  version "0.21.4"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-0.21.4.tgz#c67b90dc0568e5c1cf2b0b858c43ba28e2eda575"
+  integrity sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==
+  dependencies:
+    follow-redirects "^1.14.0"
+
 babel-plugin-dynamic-import-node@^2.3.3:
   version "2.3.3"
   resolved "https://registry.yarnpkg.com/babel-plugin-dynamic-import-node/-/babel-plugin-dynamic-import-node-2.3.3.tgz#84fda19c976ec5c6defef57f9427b3def66e17a3"
@@ -1160,6 +1176,11 @@ bcryptjs@^2.4.3:
   version "2.4.3"
   resolved "https://registry.yarnpkg.com/bcryptjs/-/bcryptjs-2.4.3.tgz#9ab5627b93e60621ff7cdac5da9733027df1d0cb"
   integrity sha1-mrVie5PmBiH/fNrF2pczAn3x0Ms=
+
+bignumber.js@^9.0.0:
+  version "9.0.1"
+  resolved "https://registry.yarnpkg.com/bignumber.js/-/bignumber.js-9.0.1.tgz#8d7ba124c882bfd8e43260c67475518d0689e4e5"
+  integrity sha512-IdZR9mh6ahOBv/hYGiXyVuyCetmGJhtYkqLBpTStdhEGjegpPlUawydyaF3pbIOFynJTpllEs+NP+CS9jKFLjA==
 
 binary-extensions@^1.0.0:
   version "1.13.1"
@@ -2027,6 +2048,11 @@ find-up@^3.0.0:
   dependencies:
     locate-path "^3.0.0"
 
+follow-redirects@^1.14.0:
+  version "1.14.4"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.14.4.tgz#838fdf48a8bbdd79e52ee51fb1c94e3ed98b9379"
+  integrity sha512-zwGkiSXC1MUJG/qmeIFH2HBJx9u0V46QGUe3YR1fXG8bXQxq7fLj0RjLZQ5nubr9qNJUZrH+xUcwXEoXNpfS+g==
+
 for-in@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/for-in/-/for-in-1.0.2.tgz#81068d295a8142ec0ac726c6e2200c30fb6d5e80"
@@ -2092,6 +2118,15 @@ get-intrinsic@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/get-intrinsic/-/get-intrinsic-1.0.2.tgz#6820da226e50b24894e08859469dc68361545d49"
   integrity sha512-aeX0vrFm21ILl3+JpFFRNe9aUvp6VFZb2/CTbgLb8j75kOhvoNYjt9d8KA/tJG4gSo8nzEDedRl0h7vDmBYRVg==
+  dependencies:
+    function-bind "^1.1.1"
+    has "^1.0.3"
+    has-symbols "^1.0.1"
+
+get-intrinsic@^1.0.2:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/get-intrinsic/-/get-intrinsic-1.1.1.tgz#15f59f376f855c446963948f0d24cd3637b4abc6"
+  integrity sha512-kWZrnVM42QCiEA2Ig1bG8zjoIMOgxWwYCEeNdwY6Tv/cOSeGpcoX4pXHfKUxNKVoArnrEr2e9srnAxxGIraS9Q==
   dependencies:
     function-bind "^1.1.1"
     has "^1.0.3"
@@ -3020,6 +3055,11 @@ object-inspect@^1.8.0:
   resolved "https://registry.yarnpkg.com/object-inspect/-/object-inspect-1.9.0.tgz#c90521d74e1127b67266ded3394ad6116986533a"
   integrity sha512-i3Bp9iTqwhaLZBxGkRfo5ZbE07BQRT7MGu8+nNgwW9ItGp1TzCTw2DLEoWwjClxBjOFI/hWljTAmYGCEwmtnOw==
 
+object-inspect@^1.9.0:
+  version "1.11.0"
+  resolved "https://registry.yarnpkg.com/object-inspect/-/object-inspect-1.11.0.tgz#9dceb146cedd4148a0d9e51ab88d34cf509922b1"
+  integrity sha512-jp7ikS6Sd3GxQfZJPyH3cjcbJF6GZPClgdV+EFygjFLQ5FmW/dRUnTd9PQ9k0JhoNDabWFbpF1yCdSWCC6gexg==
+
 object-keys@^1.0.12, object-keys@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/object-keys/-/object-keys-1.1.1.tgz#1c47f272df277f3b1daf061677d9c82e2322c60e"
@@ -3368,6 +3408,13 @@ qs@6.5.2:
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.5.2.tgz#cb3ae806e8740444584ef154ce8ee98d403f3e36"
   integrity sha512-N5ZAX4/LxJmF+7wN74pUD6qAh9/wnvdQcjq9TZjevvXzSUo7bfmw91saqMjzGS2xq91/odN2dW/WOl7qQHNDGA==
 
+qs@^6.9.3:
+  version "6.10.1"
+  resolved "https://registry.yarnpkg.com/qs/-/qs-6.10.1.tgz#4931482fa8d647a5aab799c5271d2133b981fb6a"
+  integrity sha512-M528Hph6wsSVOBiYUnGf+K/7w0hNshs/duGsNXPUCLH5XAqjEtiPGwNONLV0tBH8NoGb0mvD5JubnUTrujKDTg==
+  dependencies:
+    side-channel "^1.0.4"
+
 quick-lru@^4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/quick-lru/-/quick-lru-4.0.1.tgz#5b8878f113a58217848c6482026c73e1ba57727f"
@@ -3598,6 +3645,11 @@ retry-as-promised@^3.2.0:
   dependencies:
     any-promise "^1.3.0"
 
+retry-axios@^2.1.2:
+  version "2.6.0"
+  resolved "https://registry.yarnpkg.com/retry-axios/-/retry-axios-2.6.0.tgz#d4dc5c8a8e73982e26a705e46a33df99a28723e0"
+  integrity sha512-pOLi+Gdll3JekwuFjXO3fTq+L9lzMQGcSq7M5gIjExcl3Gu1hd4XXuf5o3+LuSBsaULQH7DiNbsqPd1chVpQGQ==
+
 rimraf@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-3.0.2.tgz#f1a5402ba6220ad52cc1282bac1ae3aa49fd061a"
@@ -3757,6 +3809,15 @@ sha.js@^2.4.0:
   dependencies:
     inherits "^2.0.1"
     safe-buffer "^5.0.1"
+
+side-channel@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/side-channel/-/side-channel-1.0.4.tgz#efce5c8fdc104ee751b25c58d4290011fa5ea2cf"
+  integrity sha512-q5XPytqFEIKHkGdiMIrY10mvLRvnQh42/+GoBlFW3b2LXLE2xxJpZFdm94we0BaoV3RwJyGqg5wS7epxTv0Zvw==
+  dependencies:
+    call-bind "^1.0.0"
+    get-intrinsic "^1.0.2"
+    object-inspect "^1.9.0"
 
 sigmund@^1.0.1:
   version "1.0.1"
