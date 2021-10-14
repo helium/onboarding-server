@@ -52,7 +52,7 @@ const { Address, Keypair } = require('@helium/crypto')
     payer: Address.fromB58(maker.address),
     payee: Address.fromB58(maker.address),
     amount: amountChoice.amount * 100000000,
-    nonce: makerAccount.dcNonce + 1,
+    nonce: makerAccount.speculativeNonce + 1,
     memo: "",
   })
 
