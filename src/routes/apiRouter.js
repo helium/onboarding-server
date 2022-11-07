@@ -52,7 +52,7 @@ if (process.env.REDIS_URL) {
 const defaultLimit = rateLimit(defaultLimitOpts)
 
 router.use(verifyApiKey)
-router.use(defaultLimit)
+// router.use(defaultLimit)
 
 // Legacy CLI Support (2020)
 router.post(

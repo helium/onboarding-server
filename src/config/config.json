@@ -1,7 +1,7 @@
 {
   "development": {
-    "username": null,
-    "password": null,
+    "username": "postgres",
+    "password": "postgres",
     "database": "onboarding_server_development",
     "host": "127.0.0.1",
     "dialect": "postgres"

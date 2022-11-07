@@ -1,13 +1,15 @@
-import { Keypair } from '@helium/crypto'
+import { Keypair, utils } from '@helium/crypto'
+import { helium } from '@helium/proto'
 import {
   Transaction,
   AddGatewayV1,
   AssertLocationV1,
-  AssertLocationV2,
+  AssertLocationV2
 } from '@helium/transactions'
 import { Maker, Hotspot } from '../models'
 import { errorResponse, successResponse } from '../helpers'
 import { Op } from 'sequelize'
+import sodium from 'libsodium-wrappers'
 
 const env = process.env.NODE_ENV || 'development'
 
@@ -32,10 +34,25 @@ export const pay = async (req, res) => {
     const keypairEntropy = Buffer.from(maker.keypairEntropy, 'hex')
     const keypair = await Keypair.fromEntropy(keypairEntropy)
 
-    let txn
+    let txn, solanaTransaction
     switch (Transaction.stringType(transaction)) {
       case 'addGateway':
         txn = AddGatewayV1.fromString(transaction)
+
+        // Verify the gateway that signed is correct so we can sign for the Solana transaction.
+        const addGateway = txn.toProto(true)
+        const serialized = helium.blockchain_txn_add_gateway_v1.encode(addGateway).finish()
+
+        const verified = sodium.crypto_sign_verify_detached(
+          txn.gatewaySignature,
+          serialized,
+          txn.gateway.publicKey
+        )
+
+        if (!verified) {
+          return errorResponse(req, res, "Invalid gateway signer", 400)
+        }
+        solanaTransaction = { foo: "bar" }
         break
 
       case 'assertLocation':
@@ -81,7 +98,7 @@ export const pay = async (req, res) => {
     await hotspot.save()
 
     const signedTxn = await txn.sign({ payer: keypair })
-    return successResponse(req, res, { transaction: signedTxn.toString() })
+    return successResponse(req, res, { transaction: signedTxn.toString(), solanaTransaction })
   } catch (error) {
     errorResponse(
       req,
