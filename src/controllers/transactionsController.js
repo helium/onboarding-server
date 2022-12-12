@@ -1,21 +1,37 @@
 import { Keypair, utils } from '@helium/crypto'
 import { helium } from '@helium/proto'
 import {
+  Keypair as SolanaKeypair,
+  PublicKey,
+  Transaction as SolanaTransaction,
+} from '@solana/web3.js'
+import {
   Transaction,
   AddGatewayV1,
   AssertLocationV1,
-  AssertLocationV2
+  AssertLocationV2,
 } from '@helium/transactions'
 import { Maker, Hotspot } from '../models'
 import { errorResponse, successResponse } from '../helpers'
 import { Op } from 'sequelize'
 import sodium from 'libsodium-wrappers'
+import {
+  hotspotIssuerKey,
+  init,
+  updateMetadata,
+  iotInfoKey,
+  hotspotConfigKey,
+} from '@helium/helium-entity-manager-sdk'
+import { subDaoKey } from '@helium/helium-sub-daos-sdk'
+import { provider, wallet } from '../helpers/solana'
 
 const env = process.env.NODE_ENV || 'development'
+const IOT_MINT = process.env.IOT_MINT
 
 export const pay = async (req, res) => {
   try {
-    const { onboardingKey } = req.params
+    const sdk = await init(provider)
+    const { onboardingKey, isDataOnly } = req.params
     const { transaction } = req.body
 
     if (!transaction) {
@@ -33,26 +49,57 @@ export const pay = async (req, res) => {
     const maker = await Maker.scope('withKeypair').findByPk(hotspot.makerId)
     const keypairEntropy = Buffer.from(maker.keypairEntropy, 'hex')
     const keypair = await Keypair.fromEntropy(keypairEntropy)
+    const makerSolanaKeypair = SolanaKeypair.fromSeed(keypairEntropy)
+    console.log(
+      'Maker',
+      keypair.address.b58,
+      makerSolanaKeypair.publicKey.toBase58(),
+    )
 
-    let txn, solanaTransaction
+    const subdao = subDaoKey(new PublicKey(IOT_MINT))[0]
+    const hsConfigKey = hotspotConfigKey(subdao, 'MOBILE')[0]
+    const hsIssuerKey = hotspotIssuerKey(
+      hsConfigKey,
+      makerSolanaKeypair.publicKey,
+    )[0]
+
+    let txn, solanaIx
     switch (Transaction.stringType(transaction)) {
       case 'addGateway':
         txn = AddGatewayV1.fromString(transaction)
+        const hotspotOwner = new PublicKey(txn.owner.publicKey)
 
         // Verify the gateway that signed is correct so we can sign for the Solana transaction.
         const addGateway = txn.toProto(true)
-        const serialized = helium.blockchain_txn_add_gateway_v1.encode(addGateway).finish()
+        const serialized = helium.blockchain_txn_add_gateway_v1
+          .encode(addGateway)
+          .finish()
 
         const verified = sodium.crypto_sign_verify_detached(
           txn.gatewaySignature,
           serialized,
-          txn.gateway.publicKey
+          txn.gateway.publicKey,
         )
 
         if (!verified) {
-          return errorResponse(req, res, "Invalid gateway signer", 400)
+          return errorResponse(req, res, 'Invalid gateway signer', 400)
         }
-        solanaTransaction = { foo: "bar" }
+
+        const payer = isDataOnly ? hotspotOwner : makerSolanaKeypair.publicKey
+        solanaIx = await sdk.methods
+          .issueIotHotspotV0({
+            hotspotKey: txn.gateway.b58,
+            isFullHotspot: !isDataOnly,
+          })
+          .accounts({
+            payer,
+            dcFeePayer: payer,
+            hotspotIssuer: hsIssuerKey,
+            recipient: hotspotOwner,
+            maker: makerSolanaKeypair.publicKey,
+          })
+          .instruction()
+
         break
 
       case 'assertLocation':
@@ -62,6 +109,7 @@ export const pay = async (req, res) => {
         if (txn.nonce > maker.locationNonceLimit) {
           return errorResponse(req, res, 'Nonce limit exceeded', 422)
         }
+
         break
 
       case 'assertLocationV2':
@@ -71,10 +119,37 @@ export const pay = async (req, res) => {
         if (txn.nonce > maker.locationNonceLimit) {
           return errorResponse(req, res, 'Nonce limit exceeded', 422)
         }
+
+        const info = await sdk.account.iotHotspotInfoV0.fetch(
+          iotInfoKey(hsConfigKey, tx.gateway.b58)[0],
+        )
+        solanaIx = await (
+          await updateMetadata({
+            program: sdk,
+            hotspotConfig: hsConfigKey,
+            hotspotOwner: new PublicKey(txn.owner.publicKey),
+            location: txn.location ? new anchor.BN(txn.location) : null,
+            gain: txn.gain ? txn.gain : null,
+            elevation: txn.elevation ? txn.elevation : null,
+            assetId: info.asset,
+          })
+        ).instruction()
         break
 
       default:
         throw new Error('Unsupported transaction type')
+    }
+
+    let solanaTransactions = [];
+    if (solanaIx) {
+      const tx = new SolanaTransaction({
+        recentBlockhash: (await provider.connection.getLatestBlockhash("confirmed"))
+          .blockhash,
+        feePayer: isDataOnly ? hotspotOwner : makerSolanaKeypair.publicKey,
+      })
+      tx.add(solanaIx)
+      tx.partialSign(makerSolanaKeypair)
+      solanaTransactions = [tx]
     }
 
     // The transaction must include the onboarding server as the payer
@@ -98,8 +173,19 @@ export const pay = async (req, res) => {
     await hotspot.save()
 
     const signedTxn = await txn.sign({ payer: keypair })
-    return successResponse(req, res, { transaction: signedTxn.toString(), solanaTransaction })
+    return successResponse(req, res, {
+      transaction: signedTxn.toString(),
+      solanaTransactions: solanaTransactions.map(
+        (tx) =>
+          Buffer.from(
+            tx.serialize({
+              requireAllSignatures: false,
+            }),
+          ).toJSON().data,
+      ),
+    })
   } catch (error) {
+    console.error(error)
     errorResponse(
       req,
       res,
