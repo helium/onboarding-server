@@ -1,29 +1,25 @@
-import { Keypair, utils } from '@helium/crypto'
+import { Keypair } from '@helium/crypto'
+import {
+  hotspotConfigKey, hotspotIssuerKey,
+  init, iotInfoKey, updateMetadata
+} from '@helium/helium-entity-manager-sdk'
+import { subDaoKey } from '@helium/helium-sub-daos-sdk'
 import { helium } from '@helium/proto'
+import {
+  AddGatewayV1,
+  AssertLocationV1,
+  AssertLocationV2, Transaction
+} from '@helium/transactions'
 import {
   Keypair as SolanaKeypair,
   PublicKey,
-  Transaction as SolanaTransaction,
+  Transaction as SolanaTransaction
 } from '@solana/web3.js'
-import {
-  Transaction,
-  AddGatewayV1,
-  AssertLocationV1,
-  AssertLocationV2,
-} from '@helium/transactions'
-import { Maker, Hotspot } from '../models'
-import { errorResponse, successResponse } from '../helpers'
-import { Op } from 'sequelize'
 import sodium from 'libsodium-wrappers'
-import {
-  hotspotIssuerKey,
-  init,
-  updateMetadata,
-  iotInfoKey,
-  hotspotConfigKey,
-} from '@helium/helium-entity-manager-sdk'
-import { subDaoKey } from '@helium/helium-sub-daos-sdk'
+import { Op } from 'sequelize'
+import { errorResponse, successResponse } from '../helpers'
 import { isEnabled, provider } from '../helpers/solana'
+import { Hotspot, Maker } from '../models'
 
 const env = process.env.NODE_ENV || 'development'
 const IOT_MINT = process.env.IOT_MINT
@@ -50,11 +46,6 @@ export const pay = async (req, res) => {
     const keypairEntropy = Buffer.from(maker.keypairEntropy, 'hex')
     const keypair = await Keypair.fromEntropy(keypairEntropy)
     const makerSolanaKeypair = SolanaKeypair.fromSeed(keypairEntropy)
-    console.log(
-      'Maker',
-      keypair.address.b58,
-      makerSolanaKeypair.publicKey.toBase58(),
-    )
 
     const subdao = subDaoKey(new PublicKey(IOT_MINT))[0]
     const hsConfigKey = hotspotConfigKey(subdao, 'MOBILE')[0]
