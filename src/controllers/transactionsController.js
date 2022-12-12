@@ -23,7 +23,7 @@ import {
   hotspotConfigKey,
 } from '@helium/helium-entity-manager-sdk'
 import { subDaoKey } from '@helium/helium-sub-daos-sdk'
-import { provider, wallet } from '../helpers/solana'
+import { isEnabled, provider } from '../helpers/solana'
 
 const env = process.env.NODE_ENV || 'development'
 const IOT_MINT = process.env.IOT_MINT
@@ -63,6 +63,7 @@ export const pay = async (req, res) => {
       makerSolanaKeypair.publicKey,
     )[0]
 
+    const solanaEnabled = await isEnabled()
     let txn, solanaIx
     switch (Transaction.stringType(transaction)) {
       case 'addGateway':
@@ -85,20 +86,22 @@ export const pay = async (req, res) => {
           return errorResponse(req, res, 'Invalid gateway signer', 400)
         }
 
-        const payer = isDataOnly ? hotspotOwner : makerSolanaKeypair.publicKey
-        solanaIx = await sdk.methods
-          .issueIotHotspotV0({
-            hotspotKey: txn.gateway.b58,
-            isFullHotspot: !isDataOnly,
-          })
-          .accounts({
-            payer,
-            dcFeePayer: payer,
-            hotspotIssuer: hsIssuerKey,
-            recipient: hotspotOwner,
-            maker: makerSolanaKeypair.publicKey,
-          })
-          .instruction()
+        if (solanaEnabled) {
+          const payer = isDataOnly ? hotspotOwner : makerSolanaKeypair.publicKey
+          solanaIx = await sdk.methods
+            .issueIotHotspotV0({
+              hotspotKey: txn.gateway.b58,
+              isFullHotspot: !isDataOnly,
+            })
+            .accounts({
+              payer,
+              dcFeePayer: payer,
+              hotspotIssuer: hsIssuerKey,
+              recipient: hotspotOwner,
+              maker: makerSolanaKeypair.publicKey,
+            })
+            .instruction()
+        }
 
         break
 
@@ -120,31 +123,34 @@ export const pay = async (req, res) => {
           return errorResponse(req, res, 'Nonce limit exceeded', 422)
         }
 
-        const info = await sdk.account.iotHotspotInfoV0.fetch(
-          iotInfoKey(hsConfigKey, tx.gateway.b58)[0],
-        )
-        solanaIx = await (
-          await updateMetadata({
-            program: sdk,
-            hotspotConfig: hsConfigKey,
-            hotspotOwner: new PublicKey(txn.owner.publicKey),
-            location: txn.location ? new anchor.BN(txn.location) : null,
-            gain: txn.gain ? txn.gain : null,
-            elevation: txn.elevation ? txn.elevation : null,
-            assetId: info.asset,
-          })
-        ).instruction()
+        if (solanaEnabled) {
+          const info = await sdk.account.iotHotspotInfoV0.fetch(
+            iotInfoKey(hsConfigKey, tx.gateway.b58)[0],
+          )
+          solanaIx = await (
+            await updateMetadata({
+              program: sdk,
+              hotspotConfig: hsConfigKey,
+              hotspotOwner: new PublicKey(txn.owner.publicKey),
+              location: txn.location ? new anchor.BN(txn.location) : null,
+              gain: txn.gain ? txn.gain : null,
+              elevation: txn.elevation ? txn.elevation : null,
+              assetId: info.asset,
+            })
+          ).instruction()
+        }
         break
 
       default:
         throw new Error('Unsupported transaction type')
     }
 
-    let solanaTransactions = [];
+    let solanaTransactions = []
     if (solanaIx) {
       const tx = new SolanaTransaction({
-        recentBlockhash: (await provider.connection.getLatestBlockhash("confirmed"))
-          .blockhash,
+        recentBlockhash: (
+          await provider.connection.getLatestBlockhash('confirmed')
+        ).blockhash,
         feePayer: isDataOnly ? hotspotOwner : makerSolanaKeypair.publicKey,
       })
       tx.add(solanaIx)
