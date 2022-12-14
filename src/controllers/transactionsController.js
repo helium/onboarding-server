@@ -13,7 +13,8 @@ import {
 import {
   Keypair as SolanaKeypair,
   PublicKey,
-  Transaction as SolanaTransaction
+  Transaction as SolanaTransaction,
+  ComputeBudgetProgram,
 } from '@solana/web3.js'
 import sodium from 'libsodium-wrappers'
 import { Op } from 'sequelize'
@@ -120,6 +121,7 @@ export const pay = async (req, res) => {
           )
           solanaIx = await (
             await updateMetadata({
+              assetEndpoint: process.env.ASSET_API_URL,
               program: sdk,
               hotspotConfig: hsConfigKey,
               hotspotOwner: new PublicKey(txn.owner.publicKey),
@@ -144,6 +146,7 @@ export const pay = async (req, res) => {
         ).blockhash,
         feePayer: isDataOnly ? hotspotOwner : makerSolanaKeypair.publicKey,
       })
+      tx.add(ComputeBudgetProgram.setComputeUnitLimit({ units: 350000 }))
       tx.add(solanaIx)
       tx.partialSign(makerSolanaKeypair)
       solanaTransactions = [tx]
