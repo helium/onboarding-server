@@ -48,7 +48,7 @@ export const pay = async (req, res) => {
     const makerSolanaKeypair = SolanaKeypair.fromSeed(keypairEntropy)
 
     const subdao = subDaoKey(new PublicKey(IOT_MINT))[0]
-    const hsConfigKey = hotspotConfigKey(subdao, 'MOBILE')[0]
+    const hsConfigKey = hotspotConfigKey(subdao, 'IOT')[0]
     const hsIssuerKey = hotspotIssuerKey(
       hsConfigKey,
       makerSolanaKeypair.publicKey,
@@ -171,7 +171,7 @@ export const pay = async (req, res) => {
 
     const signedTxn = await txn.sign({ payer: keypair })
     return successResponse(req, res, {
-      transaction: signedTxn.toString(),
+      transaction: solanaEnabled ? null : signedTxn.toString(),
       solanaTransactions: solanaTransactions.map(
         (tx) =>
           Buffer.from(

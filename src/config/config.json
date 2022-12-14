@@ -13,6 +13,16 @@
     "host": "127.0.0.1",
     "dialect": "postgres"
   },
+  "staging": {
+    "use_env_variable": "POSTGRES_URL",
+    "dialect": "postgres",
+    "dialectOptions": {
+      "ssl": {
+        "require": true,
+        "rejectUnauthorized": false
+      }
+    }
+  },
   "production": {
     "use_env_variable": "HEROKU_POSTGRESQL_COPPER_URL",
     "dialect": "postgres",

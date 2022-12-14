@@ -19,16 +19,17 @@ export const cache = new AccountFetchCache({
 export const wallet = loadKeypair(process.env.ANCHOR_WALLET);
 
 export function loadKeypair(keypair) {
-  console.log(process.env.ANCHOR_PROVIDER_URL);
-  anchor.setProvider(anchor.AnchorProvider.env());
+  console.log(process.env.ANCHOR_PROVIDER_URL)
+  anchor.setProvider(anchor.AnchorProvider.env())
 
   return Keypair.fromSecretKey(
-    new Uint8Array(JSON.parse(fs.readFileSync(keypair).toString()))
-  );
+    new Uint8Array(JSON.parse(fs.readFileSync(keypair).toString())),
+  )
 }
 
 export async function isEnabled() {
   return (
+    process.env.ENABLE_SOLANA === 'true' ||
     (await axios.get(SOLANA_STATUS_URL)).data.migrationStatus !== 'not_started'
-  ) 
+  )
 }
