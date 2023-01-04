@@ -28,7 +28,7 @@ const IOT_MINT = process.env.IOT_MINT
 export const pay = async (req, res) => {
   try {
     const sdk = await init(provider)
-    const { onboardingKey, isDataOnly } = req.params
+    const { onboardingKey } = req.params
     const { transaction } = req.body
 
     if (!transaction) {
@@ -79,11 +79,11 @@ export const pay = async (req, res) => {
         }
 
         if (solanaEnabled) {
-          const payer = isDataOnly ? hotspotOwner : makerSolanaKeypair.publicKey
+          const payer = makerSolanaKeypair.publicKey
           solanaIx = await sdk.methods
             .issueIotHotspotV0({
               hotspotKey: txn.gateway.b58,
-              isFullHotspot: !isDataOnly,
+              isFullHotspot: true,
             })
             .accounts({
               payer,
@@ -119,6 +119,11 @@ export const pay = async (req, res) => {
           const info = await sdk.account.iotHotspotInfoV0.fetch(
             iotInfoKey(hsConfigKey, tx.gateway.b58)[0],
           )
+          
+          if (info.numLocationAsserts >= maker.locationNonceLimit) {
+            return errorResponse(req, res, 'Nonce limit exceeded', 422)
+          }
+
           solanaIx = await (
             await updateMetadata({
               assetEndpoint: process.env.ASSET_API_URL,
@@ -144,7 +149,7 @@ export const pay = async (req, res) => {
         recentBlockhash: (
           await provider.connection.getLatestBlockhash('confirmed')
         ).blockhash,
-        feePayer: isDataOnly ? hotspotOwner : makerSolanaKeypair.publicKey,
+        feePayer: makerSolanaKeypair.publicKey,
       })
       tx.add(ComputeBudgetProgram.setComputeUnitLimit({ units: 350000 }))
       tx.add(solanaIx)
