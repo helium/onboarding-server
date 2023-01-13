@@ -4,6 +4,8 @@ import RedisStore from 'rate-limit-redis'
 import Redis from 'ioredis'
 import cors from 'cors'
 import * as transactionsController from '../controllers/transactionsController'
+import * as v3TransactionsController from '../controllers/v3TransactionsController'
+
 import * as makersController from '../controllers/makersController'
 import * as hotspotsController from '../controllers/hotspotsController'
 import { restrictToMaker, successResponse, verifyApiKey } from '../helpers'
@@ -90,5 +92,28 @@ router.get('/v2/makers/:makerId', makersController.show)
 router.get('/v2/firmware', (req, res) => {
   return successResponse(req, res, { version: REQUIRED_FIRMWARE_VERSION })
 })
+
+router.post(
+  '/v3/transactions/create-hotspot',
+  v3TransactionsController.createHotspot,
+)
+router.post(
+  '/v3/transactions/iot/onboard',
+  v3TransactionsController.onboardToIot,
+)
+router.post(
+  '/v3/transactions/mobile/onboard',
+  v3TransactionsController.onboardToMobile,
+)
+
+router.post(
+  '/v3/transactions/mobile/update-metadata',
+  v3TransactionsController.updateMobileMetadata,
+)
+
+router.post(
+  '/v3/transactions/iot/update-metadata',
+  v3TransactionsController.updateIotMetadata,
+)
 
 module.exports = router

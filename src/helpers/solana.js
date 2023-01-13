@@ -6,6 +6,8 @@ import axios from "axios";
 
 export const SOLANA_STATUS_URL = process.env.SOLANA_STATUS_URL || "https://solana-status.helium.com"
 export const SOLANA_URL = process.env.SOLANA_URL || 'http://127.0.0.1:8899'
+export const ASSET_API_URL =
+  process.env.ASSET_API_URL || SOLANA_URL || 'http://127.0.0.1:8899'
 process.env.ANCHOR_PROVIDER_URL = SOLANA_URL;
 anchor.setProvider(anchor.AnchorProvider.local(SOLANA_URL));
 

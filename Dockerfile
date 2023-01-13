@@ -9,8 +9,6 @@ RUN yarn install
 
 COPY src src
 
-COPY anchor ./node_modules/@project-serum/anchor
-
 RUN yarn run build
 
 # This isn't actually used, service is read only. But anchor wants a wallet.
