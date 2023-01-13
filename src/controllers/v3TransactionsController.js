@@ -84,11 +84,11 @@ export const createHotspot = async (req, res) => {
     )[0];
     const treeConfig = await TreeConfig.fromAccountAddress(provider.connection, treeAuthority);
 
-    if (treeConfig.numMinted >= treeConfig.totalMintCapacity) {
+    if (treeConfig.numMinted >= (treeConfig.totalMintCapacity - 2)) {
       const oldMerkle = await ConcurrentMerkleTreeAccount.fromAccountAddress(provider.connection, merkle);
       const newMerkle = SolanaKeypair.generate();
       const space = await getConcurrentMerkleTreeAccountSize(oldMerkle.getMaxDepth(), oldMerkle.getMaxBufferSize(), oldMerkle.getCanopyDepth())
-      console.log("Tree is full, creating a new tree")
+      console.log(`Tree is full with ${treeConfig.numMinted} minted and ${treeConfig.totalMintCapacity} capacity, creating a new tree`)
       const createMerkle = SystemProgram.createAccount({
         fromPubkey: makerSolanaKeypair.publicKey,
         newAccountPubkey: newMerkle.publicKey,
