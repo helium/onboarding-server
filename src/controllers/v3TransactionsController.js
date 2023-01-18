@@ -365,7 +365,7 @@ export const updateMobileMetadata = async (req, res) => {
         rewardableEntityConfig,
         assetId,
         payer,
-        dcFeePayer,
+        dcFeePayer: payer,
         maker: makerKey(makerDbEntry.name)[0],
         assetEndpoint: ASSET_API_URL,
       })
