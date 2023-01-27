@@ -93,6 +93,25 @@ router.get('/v2/firmware', (req, res) => {
   return successResponse(req, res, { version: REQUIRED_FIRMWARE_VERSION })
 })
 
+
+router.get('/v3/hotspots', restrictToMaker, hotspotsController.index)
+router.get('/v3/hotspots/search', restrictToMaker, hotspotsController.search)
+router.post('/v3/hotspots', restrictToMaker, hotspotsController.create)
+router.put('/v3/hotspots/:id', restrictToMaker, hotspotsController.update)
+router.delete('/v3/hotspots/:id', restrictToMaker, hotspotsController.destroy)
+
+// Public rate limited API
+router.get(
+  '/v3/hotspots/:onboardingKeyOrId',
+  strictLimit,
+  hotspotsController.show,
+)
+router.get('/v3/makers', makersController.index)
+router.get('/v3/makers/:makerId', makersController.show)
+router.get('/v3/firmware', (req, res) => {
+  return successResponse(req, res, { version: REQUIRED_FIRMWARE_VERSION })
+})
+
 router.post(
   '/v3/transactions/create-hotspot',
   v3TransactionsController.createHotspot,

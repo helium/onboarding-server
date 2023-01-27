@@ -204,7 +204,7 @@ export const createHotspot = async (req, res) => {
 
 export const onboardToIot = async (req, res) => {
   try {
-    const { entityKey } = req.body
+    const { entityKey, location, elevation, gain } = req.body
     if (!entityKey) {
       return errorResponse(req, res, 'Missing entityKey param', 422)
     }
@@ -230,6 +230,9 @@ export const onboardToIot = async (req, res) => {
     const { instruction } = await (
       await onboardIotHotspot({
         program,
+        location: location && new BN(location),
+        elevation,
+        gain,
         rewardableEntityConfig: rewardableEntityConfigKey(
           IOT_SUB_DAO_KEY,
           'IOT',
@@ -263,7 +266,7 @@ export const onboardToIot = async (req, res) => {
 
 export const onboardToMobile = async (req, res) => {
   try {
-    const { entityKey } = req.body
+    const { entityKey, location } = req.body
     if (!entityKey) {
       return errorResponse(req, res, 'Missing entityKey param', 422)
     }
@@ -289,6 +292,7 @@ export const onboardToMobile = async (req, res) => {
     const { instruction } = await (
       await onboardMobileHotspot({
         program,
+        location: location && new BN(location),
         rewardableEntityConfig: rewardableEntityConfigKey(
           MOBILE_SUB_DAO_KEY,
           'MOBILE',
@@ -351,7 +355,7 @@ export const updateMobileMetadata = async (req, res) => {
       MOBILE_SUB_DAO_KEY,
       'MOBILE',
     )[0]
-    const info = mobileInfoKey(rewardableEntityConfig, assetId)[0]
+    const [info] = await mobileInfoKey(rewardableEntityConfig, entityKey)
     const infoAcc = await program.account.mobileHotspotInfoV0.fetch(info)
     const payer =
       location && (infoAcc.numLocationAsserts <= makerDbEntry.locationNonceLimit)
@@ -435,7 +439,7 @@ export const updateIotMetadata = async (req, res) => {
       IOT_SUB_DAO_KEY,
       'IOT',
     )[0]
-    const info = iotInfoKey(rewardableEntityConfig, assetId)[0]
+    const [info] = await iotInfoKey(rewardableEntityConfig, entityKey)
     const infoAcc = await program.account.iotHotspotInfoV0.fetch(info)
     const payer =
       location && (infoAcc.numLocationAsserts <= makerDbEntry.locationNonceLimit)
