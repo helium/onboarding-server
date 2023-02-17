@@ -12,7 +12,7 @@ const sequelize = new Sequelize({
   host: host,
   dialect: 'postgres',
   port: port,
-  logging: process.env.DISABLE_DB_LOGGING !== 'true',
+  logging: process.env.DISABLE_DB_LOGGING === 'true' ? false : console.log,
   dialectModule: pg,
   username: process.env.PGUSER,
   database: process.env.PGDATABASE,
