@@ -74,7 +74,7 @@ export const createHotspot = async (req, res) => {
     )
     const keypairEntropy = Buffer.from(makerDbEntry.keypairEntropy, 'hex')
     const makerSolanaKeypair = SolanaKeypair.fromSeed(keypairEntropy)
-    const maker = makerKey(makerDbEntry.name)[0]
+    const maker = makerKey(DAO_KEY, makerDbEntry.name)[0]
     const program = await init(provider)
     const makerAcc = await program.account.makerV0.fetch(maker);
     const merkle = makerAcc.merkleTree;
@@ -240,7 +240,7 @@ export const onboardToIot = async (req, res) => {
         assetId,
         payer: makerSolanaKeypair.publicKey,
         dcFeePayer: makerSolanaKeypair.publicKey,
-        maker: makerKey(makerDbEntry.name)[0],
+        maker: makerKey(DAO_KEY, makerDbEntry.name)[0],
         dao: DAO_KEY,
         assetEndpoint: ASSET_API_URL,
       })
@@ -300,7 +300,7 @@ export const onboardToMobile = async (req, res) => {
         assetId,
         payer: makerSolanaKeypair.publicKey,
         dcFeePayer: makerSolanaKeypair.publicKey,
-        maker: makerKey(makerDbEntry.name)[0],
+        maker: makerKey(DAO_KEY, makerDbEntry.name)[0],
         dao: DAO_KEY,
         assetEndpoint: ASSET_API_URL,
       })
@@ -370,7 +370,7 @@ export const updateMobileMetadata = async (req, res) => {
         assetId,
         payer,
         dcFeePayer: payer,
-        maker: makerKey(makerDbEntry.name)[0],
+        maker: makerKey(DAO_KEY, makerDbEntry.name)[0],
         assetEndpoint: ASSET_API_URL,
       })
     ).prepare()
@@ -457,7 +457,7 @@ export const updateIotMetadata = async (req, res) => {
         gain,
         payer: payer,
         dcFeePayer: payer,
-        maker: makerKey(makerDbEntry.name)[0],
+        maker: makerKey(DAO_KEY, makerDbEntry.name)[0],
         assetEndpoint: ASSET_API_URL,
       })
     ).prepare()
