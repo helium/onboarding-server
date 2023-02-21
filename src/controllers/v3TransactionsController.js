@@ -358,7 +358,7 @@ export const updateMobileMetadata = async (req, res) => {
     const [info] = await mobileInfoKey(rewardableEntityConfig, entityKey)
     const infoAcc = await program.account.mobileHotspotInfoV0.fetch(info)
     const payer =
-      location && (infoAcc.numLocationAsserts <= makerDbEntry.locationNonceLimit)
+      location && (infoAcc.numLocationAsserts < makerDbEntry.locationNonceLimit)
         ? makerSolanaKeypair.publicKey
         : new PublicKey(wallet)
 
@@ -442,7 +442,7 @@ export const updateIotMetadata = async (req, res) => {
     const [info] = await iotInfoKey(rewardableEntityConfig, entityKey)
     const infoAcc = await program.account.iotHotspotInfoV0.fetch(info)
     const payer =
-      location && (infoAcc.numLocationAsserts <= makerDbEntry.locationNonceLimit)
+      location && (infoAcc.numLocationAsserts < makerDbEntry.locationNonceLimit)
         ? makerSolanaKeypair.publicKey
         : new PublicKey(wallet)
 
