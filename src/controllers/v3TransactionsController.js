@@ -34,6 +34,7 @@ import { Hotspot, Maker } from '../models'
 import BN from "bn.js";
 import bs58 from 'bs58'
 import { sendInstructions } from '@helium/spl-utils'
+import axios from "axios"
 
 const env = process.env.NODE_ENV || 'development'
 const ECC_VERIFY_ENDPOINT = process.env.ECC_VERIFY_ENDPOINT
