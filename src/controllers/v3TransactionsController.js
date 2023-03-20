@@ -36,11 +36,11 @@ import bs58 from 'bs58'
 import { sendInstructions } from '@helium/spl-utils'
 import axios from "axios"
 
-const env = process.env.NODE_ENV || 'development'
 const ECC_VERIFY_ENDPOINT = process.env.ECC_VERIFY_ENDPOINT
 const IOT_MINT = new PublicKey(process.env.IOT_MINT)
 const HNT_MINT = new PublicKey(process.env.HNT_MINT)
 const MOBILE_MINT = new PublicKey(process.env.MOBILE_MINT)
+const ECC_VERIFIER = new PublicKey(process.env.ECC_VERIFIER)
 const DAO_KEY = daoKey(HNT_MINT)[0]
 const IOT_SUB_DAO_KEY = subDaoKey(IOT_MINT)[0]
 const MOBILE_SUB_DAO_KEY = subDaoKey(MOBILE_MINT)[0]
@@ -151,6 +151,7 @@ export const createHotspot = async (req, res) => {
       .accounts({
         payer,
         maker,
+        eccVerifier: ECC_VERIFIER,
         dao: DAO_KEY,
         recipient: hotspotOwner,
         issuingAuthority: makerSolanaKeypair.publicKey,
