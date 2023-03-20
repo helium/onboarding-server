@@ -177,9 +177,6 @@ export const createHotspot = async (req, res) => {
       .encode(addGateway)
       .finish()
 
-    if (!verified) {
-      return errorResponse(req, res, 'Invalid gateway signer', 400)
-    }
     try {
       const { transaction: eccVerifiedTxn } = (
         await axios.post(ECC_VERIFY_ENDPOINT, {
@@ -193,7 +190,7 @@ export const createHotspot = async (req, res) => {
         })
       ).data
       solanaTransactions = [
-        SolanaTransaction.from(Buffer.from(transaction, 'hex')),
+        SolanaTransaction.from(Buffer.from(eccVerifiedTxn, 'hex')),
       ]
     } catch (e) {
       console.error(e)
