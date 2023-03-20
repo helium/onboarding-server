@@ -36,6 +36,7 @@ import bs58 from 'bs58'
 import { sendInstructions } from '@helium/spl-utils'
 
 const env = process.env.NODE_ENV || 'development'
+const ECC_VERIFY_ENDPOINT = process.env.ECC_VERIFY_ENDPOINT
 const IOT_MINT = new PublicKey(process.env.IOT_MINT)
 const HNT_MINT = new PublicKey(process.env.HNT_MINT)
 const MOBILE_MINT = new PublicKey(process.env.MOBILE_MINT)
@@ -76,19 +77,34 @@ export const createHotspot = async (req, res) => {
     const makerSolanaKeypair = SolanaKeypair.fromSeed(keypairEntropy)
     const maker = makerKey(DAO_KEY, makerDbEntry.name)[0]
     const program = await init(provider)
-    const makerAcc = await program.account.makerV0.fetch(maker);
-    const merkle = makerAcc.merkleTree;
+    const makerAcc = await program.account.makerV0.fetchNullable(maker)
+    if (!makerAcc) {
+      return errorResponse(req, res, 'Maker does not exist', 404)
+    }
+    const merkle = makerAcc.merkleTree
     const treeAuthority = PublicKey.findProgramAddressSync(
       [merkle.toBuffer()],
-      BUBBLEGUM_PROGRAM_ID
-    )[0];
-    const treeConfig = await TreeConfig.fromAccountAddress(provider.connection, treeAuthority);
+      BUBBLEGUM_PROGRAM_ID,
+    )[0]
+    const treeConfig = await TreeConfig.fromAccountAddress(
+      provider.connection,
+      treeAuthority,
+    )
 
-    if (treeConfig.numMinted >= (treeConfig.totalMintCapacity - 2)) {
-      const oldMerkle = await ConcurrentMerkleTreeAccount.fromAccountAddress(provider.connection, merkle);
-      const newMerkle = SolanaKeypair.generate();
-      const space = await getConcurrentMerkleTreeAccountSize(oldMerkle.getMaxDepth(), oldMerkle.getMaxBufferSize(), oldMerkle.getCanopyDepth())
-      console.log(`Tree is full with ${treeConfig.numMinted} minted and ${treeConfig.totalMintCapacity} capacity, creating a new tree`)
+    if (treeConfig.numMinted >= treeConfig.totalMintCapacity - 2) {
+      const oldMerkle = await ConcurrentMerkleTreeAccount.fromAccountAddress(
+        provider.connection,
+        merkle,
+      )
+      const newMerkle = SolanaKeypair.generate()
+      const space = await getConcurrentMerkleTreeAccountSize(
+        oldMerkle.getMaxDepth(),
+        oldMerkle.getMaxBufferSize(),
+        oldMerkle.getCanopyDepth(),
+      )
+      console.log(
+        `Tree is full with ${treeConfig.numMinted} minted and ${treeConfig.totalMintCapacity} capacity, creating a new tree`,
+      )
       const createMerkle = SystemProgram.createAccount({
         fromPubkey: makerSolanaKeypair.publicKey,
         newAccountPubkey: newMerkle.publicKey,
@@ -97,7 +113,7 @@ export const createHotspot = async (req, res) => {
         ),
         space: space,
         programId: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
-      });
+      })
       const updateTree = await program.methods
         .updateMakerTreeV0({
           maxBufferSize: oldMerkle.getMaxBufferSize(),
@@ -113,34 +129,18 @@ export const createHotspot = async (req, res) => {
           )[0],
           newMerkleTree: newMerkle.publicKey,
         })
-        .instruction();
+        .instruction()
 
       await sendInstructions(
         provider,
         [createMerkle, updateTree],
         [makerSolanaKeypair, newMerkle],
         makerSolanaKeypair.publicKey,
-        "confirmed"
-      );
+        'confirmed',
+      )
     }
 
     const hotspotOwner = new PublicKey(txn.owner.publicKey)
-
-    // Verify the gateway that signed is correct so we can sign for the Solana transaction.
-    const addGateway = txn.toProto(true)
-    const serialized = helium.blockchain_txn_add_gateway_v1
-      .encode(addGateway)
-      .finish()
-
-    const verified = sodium.crypto_sign_verify_detached(
-      txn.gatewaySignature,
-      serialized,
-      txn.gateway.publicKey,
-    )
-
-    if (!verified) {
-      return errorResponse(req, res, 'Invalid gateway signer', 400)
-    }
 
     const payer = makerSolanaKeypair.publicKey
     const solanaIx = await sdk.methods
@@ -170,7 +170,35 @@ export const createHotspot = async (req, res) => {
     )
     tx.add(solanaIx)
     tx.partialSign(makerSolanaKeypair)
-    solanaTransactions = [tx]
+
+    // Verify the gateway that signed is correct so we can sign for the Solana transaction.
+    const addGateway = txn.toProto(true)
+    const serialized = helium.blockchain_txn_add_gateway_v1
+      .encode(addGateway)
+      .finish()
+
+    if (!verified) {
+      return errorResponse(req, res, 'Invalid gateway signer', 400)
+    }
+    try {
+      const { transaction: eccVerifiedTxn } = (
+        await axios.post(ECC_VERIFY_ENDPOINT, {
+          transaction: tx
+            .serialize({
+              requireAllSignatures: false,
+            })
+            .toString('hex'),
+          msg: Buffer.from(serialized).toString('hex'),
+          signature: Buffer.from(txn.gatewaySignature).toString('hex'),
+        })
+      ).data
+      solanaTransactions = [
+        SolanaTransaction.from(Buffer.from(transaction, 'hex')),
+      ]
+    } catch (e) {
+      console.error(e)
+      return errorResponse(req, res, 'Invalid gateway signature', e.response.status || 400)
+    }
 
     // The transaction must include the onboarding server as the payer
     if (txn?.payer?.b58 !== makerDbEntry.address) {
@@ -210,9 +238,14 @@ export const onboardToIot = async (req, res) => {
     }
 
     const program = await init(provider)
-    const keyToAsset = await program.account.keyToAssetV0.fetch(
+    const keyToAsset = await program.account.keyToAssetV0.fetchNullable(
       (await keyToAssetKey(DAO_KEY, entityKey))[0],
     )
+
+    if (!keyToAsset) {
+      return errorResponse(req, res, 'Key to asset does not exist, has the entity been created?', 404)
+    }
+
     const assetId = keyToAsset.asset
 
     const hotspot = await Hotspot.findOne({
@@ -220,6 +253,10 @@ export const onboardToIot = async (req, res) => {
         [Op.or]: [{ publicAddress: entityKey }],
       },
     })
+
+    if (!hotspot) {
+      return errorResponse(req, res, 'Hotspot not found', 404)
+    }
 
     const makerDbEntry = await Maker.scope('withKeypair').findByPk(
       hotspot.makerId,
@@ -272,9 +309,17 @@ export const onboardToMobile = async (req, res) => {
     }
 
     const program = await init(provider)
-    const keyToAsset = await program.account.keyToAssetV0.fetch(
+    const keyToAsset = await program.account.keyToAssetV0.fetchNullable(
       (await keyToAssetKey(DAO_KEY, entityKey))[0],
     )
+    if (!keyToAsset) {
+      return errorResponse(
+        req,
+        res,
+        'Key to asset does not exist, has the entity been created?',
+        404,
+      )
+    }
     const assetId = keyToAsset.asset
 
     const hotspot = await Hotspot.findOne({
@@ -282,6 +327,10 @@ export const onboardToMobile = async (req, res) => {
         [Op.or]: [{ publicAddress: entityKey }],
       },
     })
+
+    if (!hotspot) {
+      return errorResponse(req, res, 'Hotspot not found', 404)
+    }
 
     const makerDbEntry = await Maker.scope('withKeypair').findByPk(
       hotspot.makerId,
@@ -334,9 +383,17 @@ export const updateMobileMetadata = async (req, res) => {
       return errorResponse(req, res, 'Missing wallet param', 422)
     }
     const program = await init(provider)
-    const keyToAsset = await program.account.keyToAssetV0.fetch(
+    const keyToAsset = await program.account.keyToAssetV0.fetchNullable(
       (await keyToAssetKey(DAO_KEY, entityKey))[0],
     )
+    if (!keyToAsset) {
+      return errorResponse(
+        req,
+        res,
+        'Key to asset does not exist, has the entity been created?',
+        404,
+      )
+    }
     const assetId = keyToAsset.asset
 
     const hotspot = await Hotspot.findOne({
@@ -344,6 +401,10 @@ export const updateMobileMetadata = async (req, res) => {
         [Op.or]: [{ publicAddress: entityKey }],
       },
     })
+
+    if (!hotspot) {
+      return errorResponse(req, res, 'Hotspot not found', 404)
+    }
 
     const makerDbEntry = await Maker.scope('withKeypair').findByPk(
       hotspot.makerId,
@@ -356,7 +417,16 @@ export const updateMobileMetadata = async (req, res) => {
       'MOBILE',
     )[0]
     const [info] = await mobileInfoKey(rewardableEntityConfig, entityKey)
-    const infoAcc = await program.account.mobileHotspotInfoV0.fetch(info)
+    const infoAcc = await program.account.mobileHotspotInfoV0.fetchNullable(info)
+    if (!infoAcc) {
+      return errorResponse(
+        req,
+        res,
+        'Hotspot info does not exist, has it been onboarded?',
+        404,
+      )
+    }
+
     const payer =
       location && (infoAcc.numLocationAsserts < makerDbEntry.locationNonceLimit)
         ? makerSolanaKeypair.publicKey
@@ -419,9 +489,17 @@ export const updateIotMetadata = async (req, res) => {
     }
 
     const program = await init(provider)
-    const keyToAsset = await program.account.keyToAssetV0.fetch(
+    const keyToAsset = await program.account.keyToAssetV0.fetchNullable(
       (await keyToAssetKey(DAO_KEY, entityKey))[0],
     )
+    if (!keyToAsset) {
+      return errorResponse(
+        req,
+        res,
+        'Key to asset does not exist, has the entity been created?',
+        404,
+      )
+    }
     const assetId = keyToAsset.asset
 
     const hotspot = await Hotspot.findOne({
@@ -429,6 +507,10 @@ export const updateIotMetadata = async (req, res) => {
         [Op.or]: [{ publicAddress: entityKey }],
       },
     })
+
+    if (!hotspot) {
+      return errorResponse(req, res, 'Hotspot not found', 404)
+    }
 
     const makerDbEntry = await Maker.scope('withKeypair').findByPk(
       hotspot.makerId,
@@ -440,7 +522,15 @@ export const updateIotMetadata = async (req, res) => {
       'IOT',
     )[0]
     const [info] = await iotInfoKey(rewardableEntityConfig, entityKey)
-    const infoAcc = await program.account.iotHotspotInfoV0.fetch(info)
+    const infoAcc = await program.account.iotHotspotInfoV0.fetchNullable(info)
+    if (!infoAcc) {
+      return errorResponse(
+        req,
+        res,
+        'Hotspot info does not exist, has it been onboarded?',
+        404,
+      )
+    }
     const payer =
       location && (infoAcc.numLocationAsserts < makerDbEntry.locationNonceLimit)
         ? makerSolanaKeypair.publicKey
