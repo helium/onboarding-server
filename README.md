@@ -22,6 +22,9 @@ When running in production, make sure to set the following env vars to secure ra
 | KEYRING              | JSON keyring object                       | {"1":"2xNJEZvMlr99yPqGfh0sa7pO7j1tH73RTU9qJwwi4bs="} |
 | KEYRING_SALT         | Additional entropy for keyring encryption | WmcKZ46ciIZqTvXm9TMd5V63b8k6iw/tVkcv/qEI0KU=         |
 
+(add more important vars here)
+
+
 The recommended way of generating secure secrets is:
 
 ```
