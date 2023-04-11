@@ -16,6 +16,16 @@ const sequelize = new Sequelize({
   dialectModule: pg,
   username: process.env.PGUSER,
   database: process.env.PGDATABASE,
+  dialectOptions: {
+    ssl: process.env.PG_DISABLE_SSL
+      ? {
+          ssl: {
+            require: false,
+            rejectUnauthorized: false,
+          },
+        }
+      : undefined,
+  },
   hooks: {
     beforeConnect: async (config) => {
       const isRds = host.includes('rds.amazonaws.com')
