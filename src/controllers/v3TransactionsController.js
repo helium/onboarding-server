@@ -17,7 +17,10 @@ import {
   PROGRAM_ID as SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
 } from '@solana/spl-account-compression'
 import { helium } from '@helium/proto'
-import { PROGRAM_ID as BUBBLEGUM_PROGRAM_ID, TreeConfig } from '@metaplex-foundation/mpl-bubblegum'
+import {
+  PROGRAM_ID as BUBBLEGUM_PROGRAM_ID,
+  TreeConfig,
+} from '@metaplex-foundation/mpl-bubblegum'
 import { AddGatewayV1, Transaction } from '@helium/transactions'
 import {
   ComputeBudgetProgram,
@@ -25,16 +28,17 @@ import {
   PublicKey,
   SystemProgram,
   Transaction as SolanaTransaction,
+  LAMPORTS_PER_SOL,
 } from '@solana/web3.js'
 import sodium from 'libsodium-wrappers'
 import { Op } from 'sequelize'
 import { errorResponse, successResponse } from '../helpers'
 import { ASSET_API_URL, provider } from '../helpers/solana'
 import { Hotspot, Maker } from '../models'
-import BN from "bn.js";
+import BN from 'bn.js'
 import bs58 from 'bs58'
 import { sendInstructions } from '@helium/spl-utils'
-import axios from "axios"
+import axios from 'axios'
 
 const ECC_VERIFY_ENDPOINT = process.env.ECC_VERIFY_ENDPOINT
 const IOT_MINT = new PublicKey(process.env.IOT_MINT)
@@ -171,6 +175,22 @@ export const createHotspot = async (req, res) => {
       }),
     )
     tx.add(solanaIx)
+    const ownerAcc = await provider.connection.getAccountInfo(hotspotOwner)
+    const initialLamports =
+      (await provider.connection.getMinimumBalanceForRentExemption(0)) +
+      Number(process.env.INITIAL_SOL || '0.05') * LAMPORTS_PER_SOL
+    if (!ownerAcc || ownerAcc.lamports < initialLamports) {
+      tx.add(
+        SystemProgram.transfer({
+          fromPubkey: makerSolanaKeypair.publicKey,
+          toPubkey: hotspotOwner,
+          lamports: ownerAcc
+            ? initialLamports - ownerAcc.lamports
+            : initialLamports,
+        }),
+      )
+    }
+
     tx.partialSign(makerSolanaKeypair)
 
     // Verify the gateway that signed is correct so we can sign for the Solana transaction.
@@ -196,7 +216,12 @@ export const createHotspot = async (req, res) => {
       ]
     } catch (e) {
       console.error(e)
-      return errorResponse(req, res, 'Invalid gateway signature', e.response.status || 400)
+      return errorResponse(
+        req,
+        res,
+        'Invalid gateway signature',
+        e.response.status || 400,
+      )
     }
 
     // The transaction must include the onboarding server as the payer
@@ -242,7 +267,12 @@ export const onboardToIot = async (req, res) => {
     )
 
     if (!keyToAsset) {
-      return errorResponse(req, res, 'Key to asset does not exist, has the entity been created?', 404)
+      return errorResponse(
+        req,
+        res,
+        'Key to asset does not exist, has the entity been created?',
+        404,
+      )
     }
 
     const assetId = keyToAsset.asset
@@ -416,7 +446,9 @@ export const updateMobileMetadata = async (req, res) => {
       'MOBILE',
     )[0]
     const [info] = await mobileInfoKey(rewardableEntityConfig, entityKey)
-    const infoAcc = await program.account.mobileHotspotInfoV0.fetchNullable(info)
+    const infoAcc = await program.account.mobileHotspotInfoV0.fetchNullable(
+      info,
+    )
     if (!infoAcc) {
       return errorResponse(
         req,
@@ -427,7 +459,7 @@ export const updateMobileMetadata = async (req, res) => {
     }
 
     const payer =
-      location && (infoAcc.numLocationAsserts < makerDbEntry.locationNonceLimit)
+      location && infoAcc.numLocationAsserts < makerDbEntry.locationNonceLimit
         ? makerSolanaKeypair.publicKey
         : new PublicKey(wallet)
 
@@ -460,18 +492,12 @@ export const updateMobileMetadata = async (req, res) => {
     })
   } catch (error) {
     console.error(error)
-    errorResponse(
-      req,
-      res,
-      error.message,
-      mapCode(error),
-      error.errors
-    )
+    errorResponse(req, res, error.message, mapCode(error), error.errors)
   }
 }
 
 function mapCode(error) {
-  if(error.message && error.message.includes("No asset")) {
+  if (error.message && error.message.includes('No asset')) {
     return 404
   }
   return 500
@@ -531,10 +557,9 @@ export const updateIotMetadata = async (req, res) => {
       )
     }
     const payer =
-      location && (infoAcc.numLocationAsserts < makerDbEntry.locationNonceLimit)
+      location && infoAcc.numLocationAsserts < makerDbEntry.locationNonceLimit
         ? makerSolanaKeypair.publicKey
         : new PublicKey(wallet)
-
 
     const { instruction } = await (
       await updateIotMetadataFn({

@@ -15,7 +15,8 @@ export const errorResponse = (
   errorMessage = 'Something went wrong',
   code = 500,
   errors = [],
-) =>
+) => {
+  console.log(errorMessage, code)
   res.status(code).json({
     code,
     errorMessage,
@@ -23,6 +24,7 @@ export const errorResponse = (
     data: null,
     success: false,
   })
+}
 
 export const validateFields = (object, fields) => {
   const errors = []
@@ -40,7 +42,7 @@ export const verifyApiKey = async (req, res, next) => {
   if (authHeader) {
     const [publicToken, secretToken] = authHeader.split(':')
     if (publicToken && secretToken) {
-      const token = await Token.findOne({ where: { publicToken }})
+      const token = await Token.findOne({ where: { publicToken } })
       if (token && bcrypt.compareSync(secretToken, token.secretToken)) {
         const maker = await Maker.findByPk(token.makerId)
         token.lastUsedAt = new Date()
