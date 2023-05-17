@@ -178,7 +178,7 @@ export const createHotspot = async (req, res) => {
     const ownerAcc = await provider.connection.getAccountInfo(hotspotOwner)
     const initialLamports =
       (await provider.connection.getMinimumBalanceForRentExemption(0)) +
-      Number(process.env.INITIAL_SOL || '0.05') * LAMPORTS_PER_SOL
+      Number(process.env.INITIAL_SOL || '0.02') * LAMPORTS_PER_SOL
     if (!ownerAcc || ownerAcc.lamports < initialLamports) {
       tx.add(
         SystemProgram.transfer({
