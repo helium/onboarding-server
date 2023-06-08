@@ -266,7 +266,7 @@ export const onboardToIot = async (req, res) => {
     const { instruction } = await (
       await onboardIotHotspot({
         program,
-        location: location && new BN(location),
+        location: typeof location === "undefined" ? null : new BN(location),
         elevation,
         gain,
         rewardableEntityConfig: rewardableEntityConfigKey(
@@ -340,7 +340,7 @@ export const onboardToMobile = async (req, res) => {
     const { instruction } = await (
       await onboardMobileHotspot({
         program,
-        location: location && new BN(location),
+        location: typeof location === 'undefined' ? null : new BN(location),
         rewardableEntityConfig: rewardableEntityConfigKey(
           MOBILE_SUB_DAO_KEY,
           'MOBILE',
@@ -433,7 +433,7 @@ export const updateMobileMetadata = async (req, res) => {
 
     const { instruction } = await (
       await updateMobileMetadataFn({
-        location: location && new BN(location),
+        location: typeof location === 'undefined' ? null : new BN(location),
         program,
         rewardableEntityConfig,
         assetId,
@@ -538,7 +538,7 @@ export const updateIotMetadata = async (req, res) => {
 
     const { instruction } = await (
       await updateIotMetadataFn({
-        location: location && new BN(location),
+        location: typeof location === 'undefined' ? null : new BN(location),
         program,
         rewardableEntityConfig,
         assetId,
