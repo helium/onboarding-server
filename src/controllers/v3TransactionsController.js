@@ -266,9 +266,9 @@ export const onboardToIot = async (req, res) => {
     const { instruction } = await (
       await onboardIotHotspot({
         program,
-        location: typeof location === "undefined" ? null : new BN(location),
-        elevation,
-        gain,
+        location: typeof location === 'undefined' ? null : new BN(location),
+        elevation: typeof elevation === 'undefined' ? null : elevation,
+        gain: typeof gain === 'undefined' ? null : gain,
         rewardableEntityConfig: rewardableEntityConfigKey(
           IOT_SUB_DAO_KEY,
           'IOT',
@@ -542,8 +542,8 @@ export const updateIotMetadata = async (req, res) => {
         program,
         rewardableEntityConfig,
         assetId,
-        elevation,
-        gain,
+        elevation: typeof elevation === 'undefined' ? null : elevation,
+        gain: typeof gain === "undefined" ? null : gain,
         payer: payer,
         dcFeePayer: payer,
         maker: makerKey(DAO_KEY, makerDbEntry.name)[0],
