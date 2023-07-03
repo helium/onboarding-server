@@ -26,7 +26,6 @@ import {
   SystemProgram,
   Transaction as SolanaTransaction,
 } from '@solana/web3.js'
-import sodium from 'libsodium-wrappers'
 import { Op } from 'sequelize'
 import { errorResponse, successResponse } from '../helpers'
 import { ASSET_API_URL, provider } from '../helpers/solana'
@@ -144,7 +143,7 @@ export const createHotspot = async (req, res) => {
     const hotspotOwner = new PublicKey(txn.owner.publicKey)
 
     const payer = makerSolanaKeypair.publicKey
-    const solanaIx = await sdk.methods
+    const { instruction: solanaIx, pubkeys } = await sdk.methods
       .issueEntityV0({
         entityKey: Buffer.from(bs58.decode(txn.gateway.b58)),
       })
@@ -156,47 +155,55 @@ export const createHotspot = async (req, res) => {
         recipient: hotspotOwner,
         issuingAuthority: makerSolanaKeypair.publicKey,
       })
-      .instruction()
+      .prepare()
 
     let solanaTransactions = []
-    const tx = new SolanaTransaction({
-      recentBlockhash: (
-        await provider.connection.getLatestBlockhash('confirmed')
-      ).blockhash,
-      feePayer: makerSolanaKeypair.publicKey,
-    })
-    tx.add(
-      ComputeBudgetProgram.setComputeUnitLimit({
-        units: 350000,
-      }),
-    )
-    tx.add(solanaIx)
-    tx.partialSign(makerSolanaKeypair)
+    // Only return txns if the hotspot doesn't exist
+    if (!await provider.connection.getAccountInfo(pubkeys.keyToAsset)) {
+      const tx = new SolanaTransaction({
+        recentBlockhash: (
+          await provider.connection.getLatestBlockhash('confirmed')
+        ).blockhash,
+        feePayer: makerSolanaKeypair.publicKey,
+      })
+      tx.add(
+        ComputeBudgetProgram.setComputeUnitLimit({
+          units: 350000,
+        }),
+      )
+      tx.add(solanaIx)
+      tx.partialSign(makerSolanaKeypair)
 
-    // Verify the gateway that signed is correct so we can sign for the Solana transaction.
-    const addGateway = txn.toProto(true)
-    const serialized = helium.blockchain_txn_add_gateway_v1
-      .encode(addGateway)
-      .finish()
+      // Verify the gateway that signed is correct so we can sign for the Solana transaction.
+      const addGateway = txn.toProto(true)
+      const serialized = helium.blockchain_txn_add_gateway_v1
+        .encode(addGateway)
+        .finish()
 
-    try {
-      const { transaction: eccVerifiedTxn } = (
-        await axios.post(ECC_VERIFY_ENDPOINT, {
-          transaction: tx
-            .serialize({
-              requireAllSignatures: false,
-            })
-            .toString('hex'),
-          msg: Buffer.from(serialized).toString('hex'),
-          signature: Buffer.from(txn.gatewaySignature).toString('hex'),
-        })
-      ).data
-      solanaTransactions = [
-        SolanaTransaction.from(Buffer.from(eccVerifiedTxn, 'hex')),
-      ]
-    } catch (e) {
-      console.error(e)
-      return errorResponse(req, res, 'Invalid gateway signature', e.response.status || 400)
+      try {
+        const { transaction: eccVerifiedTxn } = (
+          await axios.post(ECC_VERIFY_ENDPOINT, {
+            transaction: tx
+              .serialize({
+                requireAllSignatures: false,
+              })
+              .toString('hex'),
+            msg: Buffer.from(serialized).toString('hex'),
+            signature: Buffer.from(txn.gatewaySignature).toString('hex'),
+          })
+        ).data
+        solanaTransactions = [
+          SolanaTransaction.from(Buffer.from(eccVerifiedTxn, 'hex')),
+        ]
+      } catch (e) {
+        console.error(e)
+        return errorResponse(
+          req,
+          res,
+          'Invalid gateway signature',
+          e.response.status || 400,
+        )
+      }
     }
 
     // The transaction must include the onboarding server as the payer
