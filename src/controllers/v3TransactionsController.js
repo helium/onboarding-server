@@ -30,7 +30,6 @@ import {
   Transaction as SolanaTransaction,
   LAMPORTS_PER_SOL,
 } from '@solana/web3.js'
-import sodium from 'libsodium-wrappers'
 import { Op } from 'sequelize'
 import { errorResponse, successResponse } from '../helpers'
 import { ASSET_API_URL, provider } from '../helpers/solana'
@@ -149,7 +148,7 @@ export const createHotspot = async (req, res) => {
     const hotspotOwner = new PublicKey(txn.owner.publicKey)
 
     const payer = makerSolanaKeypair.publicKey
-    const solanaIx = await sdk.methods
+    const { instruction: solanaIx, pubkeys } = await sdk.methods
       .issueEntityV0({
         entityKey: Buffer.from(bs58.decode(txn.gateway.b58)),
       })
@@ -161,72 +160,75 @@ export const createHotspot = async (req, res) => {
         recipient: hotspotOwner,
         issuingAuthority: makerSolanaKeypair.publicKey,
       })
-      .instruction()
+      .prepare()
 
     let solanaTransactions = []
-    const tx = new SolanaTransaction({
-      recentBlockhash: (
-        await provider.connection.getLatestBlockhash('confirmed')
-      ).blockhash,
-      feePayer: makerSolanaKeypair.publicKey,
-    })
-    tx.add(
-      ComputeBudgetProgram.setComputeUnitLimit({
-        units: 350000,
-      }),
-    )
-    tx.add(solanaIx)
+    // Only return txns if the hotspot doesn't exist
+    if (!(await provider.connection.getAccountInfo(pubkeys.keyToAsset))) {
+      const tx = new SolanaTransaction({
+        recentBlockhash: (
+          await provider.connection.getLatestBlockhash('confirmed')
+        ).blockhash,
+        feePayer: makerSolanaKeypair.publicKey,
+      })
+      tx.add(
+        ComputeBudgetProgram.setComputeUnitLimit({
+          units: 350000,
+        }),
+      )
+      tx.add(solanaIx)
 
-    // If INITIAL_SOL env provided, fund new wallets with that amount of sol
-    if (INITIAL_SOL) {
-      const ownerAcc = await provider.connection.getAccountInfo(hotspotOwner)
-      const initialLamports =
-        (await provider.connection.getMinimumBalanceForRentExemption(0)) +
-        Number(INITIAL_SOL) * LAMPORTS_PER_SOL
-      if (!ownerAcc || ownerAcc.lamports < initialLamports) {
-        tx.add(
-          SystemProgram.transfer({
-            fromPubkey: makerSolanaKeypair.publicKey,
-            toPubkey: hotspotOwner,
-            lamports: ownerAcc
-              ? initialLamports - ownerAcc.lamports
-              : initialLamports,
-          }),
+      // If INITIAL_SOL env provided, fund new wallets with that amount of sol
+      if (INITIAL_SOL) {
+        const ownerAcc = await provider.connection.getAccountInfo(hotspotOwner)
+        const initialLamports =
+          (await provider.connection.getMinimumBalanceForRentExemption(0)) +
+          Number(INITIAL_SOL) * LAMPORTS_PER_SOL
+        if (!ownerAcc || ownerAcc.lamports < initialLamports) {
+          tx.add(
+            SystemProgram.transfer({
+              fromPubkey: makerSolanaKeypair.publicKey,
+              toPubkey: hotspotOwner,
+              lamports: ownerAcc
+                ? initialLamports - ownerAcc.lamports
+                : initialLamports,
+            }),
+          )
+        }
+      }
+
+      tx.partialSign(makerSolanaKeypair)
+
+      // Verify the gateway that signed is correct so we can sign for the Solana transaction.
+      const addGateway = txn.toProto(true)
+      const serialized = helium.blockchain_txn_add_gateway_v1
+        .encode(addGateway)
+        .finish()
+
+      try {
+        const { transaction: eccVerifiedTxn } = (
+          await axios.post(ECC_VERIFY_ENDPOINT, {
+            transaction: tx
+              .serialize({
+                requireAllSignatures: false,
+              })
+              .toString('hex'),
+            msg: Buffer.from(serialized).toString('hex'),
+            signature: Buffer.from(txn.gatewaySignature).toString('hex'),
+          })
+        ).data
+        solanaTransactions = [
+          SolanaTransaction.from(Buffer.from(eccVerifiedTxn, 'hex')),
+        ]
+      } catch (e) {
+        console.error(e)
+        return errorResponse(
+          req,
+          res,
+          'Invalid gateway signature',
+          e.response.status || 400,
         )
       }
-    }
-
-    tx.partialSign(makerSolanaKeypair)
-
-    // Verify the gateway that signed is correct so we can sign for the Solana transaction.
-    const addGateway = txn.toProto(true)
-    const serialized = helium.blockchain_txn_add_gateway_v1
-      .encode(addGateway)
-      .finish()
-
-    try {
-      const { transaction: eccVerifiedTxn } = (
-        await axios.post(ECC_VERIFY_ENDPOINT, {
-          transaction: tx
-            .serialize({
-              requireAllSignatures: false,
-            })
-            .toString('hex'),
-          msg: Buffer.from(serialized).toString('hex'),
-          signature: Buffer.from(txn.gatewaySignature).toString('hex'),
-        })
-      ).data
-      solanaTransactions = [
-        SolanaTransaction.from(Buffer.from(eccVerifiedTxn, 'hex')),
-      ]
-    } catch (e) {
-      console.error(e)
-      return errorResponse(
-        req,
-        res,
-        'Invalid gateway signature',
-        e.response.status || 400,
-      )
     }
 
     // The transaction must include the onboarding server as the payer
@@ -268,7 +270,7 @@ export const onboardToIot = async (req, res) => {
 
     const program = await init(provider)
     const keyToAsset = await program.account.keyToAssetV0.fetchNullable(
-      (await keyToAssetKey(DAO_KEY, entityKey))[0],
+      (await keyToAssetKey(DAO_KEY, entityKey, 'b58'))[0],
     )
 
     if (!keyToAsset) {
@@ -301,9 +303,9 @@ export const onboardToIot = async (req, res) => {
     const { instruction } = await (
       await onboardIotHotspot({
         program,
-        location: location && new BN(location),
-        elevation,
-        gain,
+        location: typeof location === 'undefined' ? null : new BN(location),
+        elevation: typeof elevation === 'undefined' ? null : elevation,
+        gain: typeof gain === 'undefined' ? null : gain,
         rewardableEntityConfig: rewardableEntityConfigKey(
           IOT_SUB_DAO_KEY,
           'IOT',
@@ -344,7 +346,7 @@ export const onboardToMobile = async (req, res) => {
 
     const program = await init(provider)
     const keyToAsset = await program.account.keyToAssetV0.fetchNullable(
-      (await keyToAssetKey(DAO_KEY, entityKey))[0],
+      (await keyToAssetKey(DAO_KEY, entityKey, 'b58'))[0],
     )
     if (!keyToAsset) {
       return errorResponse(
@@ -375,7 +377,7 @@ export const onboardToMobile = async (req, res) => {
     const { instruction } = await (
       await onboardMobileHotspot({
         program,
-        location: location && new BN(location),
+        location: typeof location === 'undefined' ? null : new BN(location),
         rewardableEntityConfig: rewardableEntityConfigKey(
           MOBILE_SUB_DAO_KEY,
           'MOBILE',
@@ -418,7 +420,7 @@ export const updateMobileMetadata = async (req, res) => {
     }
     const program = await init(provider)
     const keyToAsset = await program.account.keyToAssetV0.fetchNullable(
-      (await keyToAssetKey(DAO_KEY, entityKey))[0],
+      (await keyToAssetKey(DAO_KEY, entityKey, 'b58'))[0],
     )
     if (!keyToAsset) {
       return errorResponse(
@@ -470,7 +472,7 @@ export const updateMobileMetadata = async (req, res) => {
 
     const { instruction } = await (
       await updateMobileMetadataFn({
-        location: location && new BN(location),
+        location: typeof location === 'undefined' ? null : new BN(location),
         program,
         rewardableEntityConfig,
         assetId,
@@ -520,7 +522,7 @@ export const updateIotMetadata = async (req, res) => {
 
     const program = await init(provider)
     const keyToAsset = await program.account.keyToAssetV0.fetchNullable(
-      (await keyToAssetKey(DAO_KEY, entityKey))[0],
+      (await keyToAssetKey(DAO_KEY, entityKey, 'b58'))[0],
     )
     if (!keyToAsset) {
       return errorResponse(
@@ -568,12 +570,12 @@ export const updateIotMetadata = async (req, res) => {
 
     const { instruction } = await (
       await updateIotMetadataFn({
-        location: location && new BN(location),
+        location: typeof location === 'undefined' ? null : new BN(location),
         program,
         rewardableEntityConfig,
         assetId,
-        elevation,
-        gain,
+        elevation: typeof elevation === 'undefined' ? null : elevation,
+        gain: typeof gain === 'undefined' ? null : gain,
         payer: payer,
         dcFeePayer: payer,
         maker: makerKey(DAO_KEY, makerDbEntry.name)[0],
