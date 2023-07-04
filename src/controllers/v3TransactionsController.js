@@ -48,6 +48,7 @@ const ECC_VERIFIER = new PublicKey(process.env.ECC_VERIFIER)
 const DAO_KEY = daoKey(HNT_MINT)[0]
 const IOT_SUB_DAO_KEY = subDaoKey(IOT_MINT)[0]
 const MOBILE_SUB_DAO_KEY = subDaoKey(MOBILE_MINT)[0]
+const INITIAL_SOL = process.env.INITIAL_SOL
 
 export const createHotspot = async (req, res) => {
   const { transaction } = req.body
@@ -175,20 +176,24 @@ export const createHotspot = async (req, res) => {
       }),
     )
     tx.add(solanaIx)
-    const ownerAcc = await provider.connection.getAccountInfo(hotspotOwner)
-    const initialLamports =
-      (await provider.connection.getMinimumBalanceForRentExemption(0)) +
-      Number(process.env.INITIAL_SOL || '0.02') * LAMPORTS_PER_SOL
-    if (!ownerAcc || ownerAcc.lamports < initialLamports) {
-      tx.add(
-        SystemProgram.transfer({
-          fromPubkey: makerSolanaKeypair.publicKey,
-          toPubkey: hotspotOwner,
-          lamports: ownerAcc
-            ? initialLamports - ownerAcc.lamports
-            : initialLamports,
-        }),
-      )
+
+    // If INITIAL_SOL env provided, fund new wallets with that amount of sol
+    if (INITIAL_SOL) {
+      const ownerAcc = await provider.connection.getAccountInfo(hotspotOwner)
+      const initialLamports =
+        (await provider.connection.getMinimumBalanceForRentExemption(0)) +
+        Number(INITIAL_SOL) * LAMPORTS_PER_SOL
+      if (!ownerAcc || ownerAcc.lamports < initialLamports) {
+        tx.add(
+          SystemProgram.transfer({
+            fromPubkey: makerSolanaKeypair.publicKey,
+            toPubkey: hotspotOwner,
+            lamports: ownerAcc
+              ? initialLamports - ownerAcc.lamports
+              : initialLamports,
+          }),
+        )
+      }
     }
 
     tx.partialSign(makerSolanaKeypair)
