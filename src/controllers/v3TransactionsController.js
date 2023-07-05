@@ -17,7 +17,10 @@ import {
   PROGRAM_ID as SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
 } from '@solana/spl-account-compression'
 import { helium } from '@helium/proto'
-import { PROGRAM_ID as BUBBLEGUM_PROGRAM_ID, TreeConfig } from '@metaplex-foundation/mpl-bubblegum'
+import {
+  PROGRAM_ID as BUBBLEGUM_PROGRAM_ID,
+  TreeConfig,
+} from '@metaplex-foundation/mpl-bubblegum'
 import { AddGatewayV1, Transaction } from '@helium/transactions'
 import {
   ComputeBudgetProgram,
@@ -25,15 +28,16 @@ import {
   PublicKey,
   SystemProgram,
   Transaction as SolanaTransaction,
+  LAMPORTS_PER_SOL,
 } from '@solana/web3.js'
 import { Op } from 'sequelize'
 import { errorResponse, successResponse } from '../helpers'
 import { ASSET_API_URL, provider } from '../helpers/solana'
 import { Hotspot, Maker } from '../models'
-import BN from "bn.js";
+import BN from 'bn.js'
 import bs58 from 'bs58'
 import { sendInstructions } from '@helium/spl-utils'
-import axios from "axios"
+import axios from 'axios'
 
 const ECC_VERIFY_ENDPOINT = process.env.ECC_VERIFY_ENDPOINT
 const IOT_MINT = new PublicKey(process.env.IOT_MINT)
@@ -43,6 +47,7 @@ const ECC_VERIFIER = new PublicKey(process.env.ECC_VERIFIER)
 const DAO_KEY = daoKey(HNT_MINT)[0]
 const IOT_SUB_DAO_KEY = subDaoKey(IOT_MINT)[0]
 const MOBILE_SUB_DAO_KEY = subDaoKey(MOBILE_MINT)[0]
+const INITIAL_SOL = process.env.INITIAL_SOL
 
 export const createHotspot = async (req, res) => {
   const { transaction } = req.body
@@ -159,7 +164,7 @@ export const createHotspot = async (req, res) => {
 
     let solanaTransactions = []
     // Only return txns if the hotspot doesn't exist
-    if (!await provider.connection.getAccountInfo(pubkeys.keyToAsset)) {
+    if (!(await provider.connection.getAccountInfo(pubkeys.keyToAsset))) {
       const tx = new SolanaTransaction({
         recentBlockhash: (
           await provider.connection.getLatestBlockhash('confirmed')
@@ -172,6 +177,26 @@ export const createHotspot = async (req, res) => {
         }),
       )
       tx.add(solanaIx)
+
+      // If INITIAL_SOL env provided, fund new wallets with that amount of sol
+      if (INITIAL_SOL) {
+        const ownerAcc = await provider.connection.getAccountInfo(hotspotOwner)
+        const initialLamports =
+          (await provider.connection.getMinimumBalanceForRentExemption(0)) +
+          Number(INITIAL_SOL) * LAMPORTS_PER_SOL
+        if (!ownerAcc || ownerAcc.lamports < initialLamports) {
+          tx.add(
+            SystemProgram.transfer({
+              fromPubkey: makerSolanaKeypair.publicKey,
+              toPubkey: hotspotOwner,
+              lamports: ownerAcc
+                ? initialLamports - ownerAcc.lamports
+                : initialLamports,
+            }),
+          )
+        }
+      }
+
       tx.partialSign(makerSolanaKeypair)
 
       // Verify the gateway that signed is correct so we can sign for the Solana transaction.
@@ -245,11 +270,16 @@ export const onboardToIot = async (req, res) => {
 
     const program = await init(provider)
     const keyToAsset = await program.account.keyToAssetV0.fetchNullable(
-      (await keyToAssetKey(DAO_KEY, entityKey, "b58"))[0],
+      (await keyToAssetKey(DAO_KEY, entityKey, 'b58'))[0],
     )
 
     if (!keyToAsset) {
-      return errorResponse(req, res, 'Key to asset does not exist, has the entity been created?', 404)
+      return errorResponse(
+        req,
+        res,
+        'Key to asset does not exist, has the entity been created?',
+        404,
+      )
     }
 
     const assetId = keyToAsset.asset
@@ -316,7 +346,7 @@ export const onboardToMobile = async (req, res) => {
 
     const program = await init(provider)
     const keyToAsset = await program.account.keyToAssetV0.fetchNullable(
-      (await keyToAssetKey(DAO_KEY, entityKey, "b58"))[0],
+      (await keyToAssetKey(DAO_KEY, entityKey, 'b58'))[0],
     )
     if (!keyToAsset) {
       return errorResponse(
@@ -390,7 +420,7 @@ export const updateMobileMetadata = async (req, res) => {
     }
     const program = await init(provider)
     const keyToAsset = await program.account.keyToAssetV0.fetchNullable(
-      (await keyToAssetKey(DAO_KEY, entityKey, "b58"))[0],
+      (await keyToAssetKey(DAO_KEY, entityKey, 'b58'))[0],
     )
     if (!keyToAsset) {
       return errorResponse(
@@ -423,7 +453,9 @@ export const updateMobileMetadata = async (req, res) => {
       'MOBILE',
     )[0]
     const [info] = await mobileInfoKey(rewardableEntityConfig, entityKey)
-    const infoAcc = await program.account.mobileHotspotInfoV0.fetchNullable(info)
+    const infoAcc = await program.account.mobileHotspotInfoV0.fetchNullable(
+      info,
+    )
     if (!infoAcc) {
       return errorResponse(
         req,
@@ -434,7 +466,7 @@ export const updateMobileMetadata = async (req, res) => {
     }
 
     const payer =
-      location && (infoAcc.numLocationAsserts < makerDbEntry.locationNonceLimit)
+      location && infoAcc.numLocationAsserts < makerDbEntry.locationNonceLimit
         ? makerSolanaKeypair.publicKey
         : new PublicKey(wallet)
 
@@ -467,18 +499,12 @@ export const updateMobileMetadata = async (req, res) => {
     })
   } catch (error) {
     console.error(error)
-    errorResponse(
-      req,
-      res,
-      error.message,
-      mapCode(error),
-      error.errors
-    )
+    errorResponse(req, res, error.message, mapCode(error), error.errors)
   }
 }
 
 function mapCode(error) {
-  if(error.message && error.message.includes("No asset")) {
+  if (error.message && error.message.includes('No asset')) {
     return 404
   }
   return 500
@@ -496,7 +522,7 @@ export const updateIotMetadata = async (req, res) => {
 
     const program = await init(provider)
     const keyToAsset = await program.account.keyToAssetV0.fetchNullable(
-      (await keyToAssetKey(DAO_KEY, entityKey, "b58"))[0],
+      (await keyToAssetKey(DAO_KEY, entityKey, 'b58'))[0],
     )
     if (!keyToAsset) {
       return errorResponse(
@@ -538,10 +564,9 @@ export const updateIotMetadata = async (req, res) => {
       )
     }
     const payer =
-      location && (infoAcc.numLocationAsserts < makerDbEntry.locationNonceLimit)
+      location && infoAcc.numLocationAsserts < makerDbEntry.locationNonceLimit
         ? makerSolanaKeypair.publicKey
         : new PublicKey(wallet)
-
 
     const { instruction } = await (
       await updateIotMetadataFn({
@@ -550,7 +575,7 @@ export const updateIotMetadata = async (req, res) => {
         rewardableEntityConfig,
         assetId,
         elevation: typeof elevation === 'undefined' ? null : elevation,
-        gain: typeof gain === "undefined" ? null : gain,
+        gain: typeof gain === 'undefined' ? null : gain,
         payer: payer,
         dcFeePayer: payer,
         maker: makerKey(DAO_KEY, makerDbEntry.name)[0],

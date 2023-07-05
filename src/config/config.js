@@ -9,11 +9,5 @@ module.exports = {
     port: process.env.PGPORT,
     host: '127.0.0.1',
     dialect: 'postgres',
-    dialectOptions: {
-      ssl: {
-        require: false,
-        rejectUnauthorized: false,
-      },
-    },
   },
 }
