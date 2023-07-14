@@ -5,37 +5,47 @@
  * more characters.
  */
 module.exports = {
-    up: (queryInterface, Sequelize) => {
-        return Promise.all([
-            queryInterface.changeColumn('hotspots', 'onboarding_key', {
-                type: Sequelize.TEXT,
-                allowNull: true,
-            }, {
-                transaction,
-            }),
-            queryInterface.changeColumn('hotspots', 'public_address', {
+    up: async (queryInterface, Sequelize) => {
+        const transaction = await queryInterface.sequelize.transaction()
+        try {
+            await queryInterface.changeColumn('hotspots', 'onboarding_key', {
                 type: Sequelize.TEXT,
                 allowNull: true,
             }, {
                 transaction,
             })
-        ])
+            await queryInterface.changeColumn('hotspots', 'public_address', {
+                type: Sequelize.TEXT,
+                allowNull: true,
+            }, {
+                transaction,
+            })
+            await transaction.commit()
+        } catch (error) {
+            await transaction.rollback()
+            throw error
+        }
     },
 
-    down: (queryInterface, Sequelize) => {
-        return Promise.all([
-            queryInterface.changeColumn('hotspots', 'onboarding_key', {
-                type: Sequelize.STRING,
-                allowNull: true,
-            }, {
-                transaction,
-            }),
-            queryInterface.changeColumn('hotspots', 'public_address', {
+    down: async (queryInterface, Sequelize) => {
+        const transaction = await queryInterface.sequelize.transaction()
+        try {
+            await queryInterface.changeColumn('hotspots', 'onboarding_key', {
                 type: Sequelize.STRING,
                 allowNull: true,
             }, {
                 transaction,
             })
-        ])
+            await queryInterface.changeColumn('hotspots', 'public_address', {
+                type: Sequelize.STRING,
+                allowNull: true,
+            }, {
+                transaction,
+            })
+            await transaction.commit()
+        } catch (error) {
+            await transaction.rollback()
+            throw error
+        }
     }
 };
