@@ -15,11 +15,11 @@ module.exports = (sequelize, DataTypes) => {
   }
   Hotspot.init(
     {
-      onboardingKey: DataTypes.STRING,
+      onboardingKey: DataTypes.TEXT,
       macWlan0: DataTypes.STRING,
       rpiSerial: DataTypes.STRING,
       batch: DataTypes.STRING,
-      publicAddress: DataTypes.STRING,
+      publicAddress: DataTypes.TEXT,
       heliumSerial: DataTypes.STRING,
       macEth0: DataTypes.STRING,
     },
