@@ -919,10 +919,10 @@
   dependencies:
     "@solana/web3.js" "^1.43.4"
 
-"@helium/address@^4.6.2", "@helium/address@^4.8.1":
-  version "4.8.1"
-  resolved "https://registry.yarnpkg.com/@helium/address/-/address-4.8.1.tgz#d8d7cefc6aa7791d79eb8759befb821aaccec3ff"
-  integrity sha512-OEqX9j8m4sIc6bmvGUWV3/AHeuJCBWIl9EvRpS9xOPy+mC17OkDiPwZI35DSbMlAM7cK7+UjKYZvIVQL/aCgSQ==
+"@helium/address@^4.10.2", "@helium/address@^4.6.2", "@helium/address@^4.8.1":
+  version "4.10.2"
+  resolved "https://registry.yarnpkg.com/@helium/address/-/address-4.10.2.tgz#56960b118fceb6b6ddabe3e4ecec467d9ae50e26"
+  integrity sha512-qCswC7Z3GXuJyHv36RcOSnffeghjqJQx0fdu2Lxpf9fgOnIi1JZO2tjjk1mBaqOwCyp+0YzrTPUoEukL/WCtsA==
   dependencies:
     bs58 "^5.0.0"
     js-sha256 "^0.9.0"
@@ -979,7 +979,7 @@
     crypto-js "^4.1.1"
     js-sha256 "^0.9.0"
 
-"@helium/helium-sub-daos-sdk@^0.2.5", "@helium/helium-sub-daos-sdk@^0.2.9":
+"@helium/helium-sub-daos-sdk@^0.2.5":
   version "0.2.5"
   resolved "https://registry.yarnpkg.com/@helium/helium-sub-daos-sdk/-/helium-sub-daos-sdk-0.2.5.tgz#1f9af001a3784250bce899a9ce4a35020da11dde"
   integrity sha512-U+AT8t3wJhZTambCtSHnvXBl+5fVw2NhQ49AgbzKm3Yo3JBnyXJ31mdTGyeT67QrviOW2nOmU8adozp7AXsiOw==
@@ -1021,7 +1021,7 @@
   dependencies:
     protobufjs "^6.8.9"
 
-"@helium/spl-utils@^0.2.6", "@helium/spl-utils@^0.2.9":
+"@helium/spl-utils@^0.2.6":
   version "0.2.6"
   resolved "https://registry.yarnpkg.com/@helium/spl-utils/-/spl-utils-0.2.6.tgz#20b136f13d9e1d58e7032b4c55b5cc0c1ad9f6dc"
   integrity sha512-Ut1bdWRMyru4YOYFB4NS31fbSGYTtW3gMxEg3/c+SKMwAfoZcRIOE8FgOV1nugSrFJ570zsx8R7lHIQYfAOmog==

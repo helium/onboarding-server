@@ -52,6 +52,9 @@
     "snakecase-keys": "^3.2.1",
     "typescript-collections": "^1.3.3"
   },
+  "resolutions": {
+    "@helium/address": "^4.10.2"
+  },
   "devDependencies": {
     "nodemon": "^2.0.7",
     "prettier": "^2.2.1",
