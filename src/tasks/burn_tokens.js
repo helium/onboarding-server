@@ -1,7 +1,8 @@
 const prompts = require('prompts')
 const { Client, Network } = require('@helium/http')
 const { TokenBurnV1, Transaction } = require('@helium/transactions')
-const { Address, Keypair } = require('@helium/crypto')
+const { Keypair } = require('@helium/crypto')
+const { Address } = require('@helium/address')
 
 ;(async () => {
   const client = new Client(Network.production)
