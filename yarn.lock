@@ -947,26 +947,26 @@
     bn.js "^5.2.0"
     bs58 "^4.0.1"
 
-"@helium/crypto@^3.38.0":
-  version "3.38.0"
-  resolved "https://registry.yarnpkg.com/@helium/crypto/-/crypto-3.38.0.tgz#b321f9a42b0e6144eb2044f0d05f6874d731fa85"
-  integrity sha512-dvmVaeTsk+05nBhbeqqWu0nugCeCrdX9A61YNxNxnb5NWYW6cAuIOuzutgTjr3v4MxZPtLEVyH9g8eWTQuCsug==
+"@helium/crypto@^4.10.2":
+  version "4.10.2"
+  resolved "https://registry.yarnpkg.com/@helium/crypto/-/crypto-4.10.2.tgz#4707756a4623035e5a6f30b6e4ae51158f1e269a"
+  integrity sha512-ltDWuQwEMNNvIq82QhqF1EPsHm1LrOceiGZgPvi0c9FPp5B6ft2TPjpDueGM27uKy0XbcHAjvBM7HhSCRhs+iQ==
   dependencies:
-    bs58 "^4.0.1"
+    "@helium/address" "^4.10.2"
     create-hash "^1.2.0"
     libsodium-wrappers "^0.7.6"
 
-"@helium/currency@^3.25.1":
-  version "3.25.1"
-  resolved "https://registry.yarnpkg.com/@helium/currency/-/currency-3.25.1.tgz#83b6146b93423791c2b3f96188999d8c7447037b"
-  integrity sha512-qaF9KlCRW30XARgyVed1MZXQjrtNcsmCYow9yGHRBOGIE/RjY2lGaymH0OCSsE93SrDaD3rNqGGarHs1BF4thg==
+"@helium/currency@^4.10.2":
+  version "4.10.2"
+  resolved "https://registry.yarnpkg.com/@helium/currency/-/currency-4.10.2.tgz#f71190a5a249d069a5e77e6c28ea8b0f94303ede"
+  integrity sha512-Cw63efK7se58YQXcsXR1yAoAbO4OdQ3Ts3int6T1GhwYufHg6avDblSUJThkacmRsaGWqOD+oLE/StD6Dou8Ew==
   dependencies:
     bignumber.js "^9.0.0"
 
-"@helium/helium-entity-manager-sdk@^0.2.9":
-  version "0.2.9"
-  resolved "https://registry.yarnpkg.com/@helium/helium-entity-manager-sdk/-/helium-entity-manager-sdk-0.2.9.tgz#4128bc7485db26ab701509e37e5e0d77cc82cc11"
-  integrity sha512-JMMU2p6f/qZUWif0/qjAB2MmHoCgBBbBBu6vtTCUrR11E1nKOB82r0uLsdR77oCG8TwyTZ7QrOmvW0Mi2ix6gQ==
+"@helium/helium-entity-manager-sdk@^0.2.11":
+  version "0.2.11"
+  resolved "https://registry.yarnpkg.com/@helium/helium-entity-manager-sdk/-/helium-entity-manager-sdk-0.2.11.tgz#ce625302c3991fa54134d9f143dfbf5a294de1b5"
+  integrity sha512-J+BlOUU+78VMwqBWu06SxMNBBJRHY48kLPHTOyVl4Wg4vK4ywpONJDhCvj7eHDmhIZGHl+6O2aCpvlKTQvJCCA==
   dependencies:
     "@coral-xyz/anchor" "^0.26.0"
     "@helium/address" "^4.6.2"
@@ -992,16 +992,18 @@
     bn.js "^5.2.0"
     bs58 "^4.0.1"
 
-"@helium/http@^3.44.0":
-  version "3.44.0"
-  resolved "https://registry.yarnpkg.com/@helium/http/-/http-3.44.0.tgz#518feaa6d3c92e94fd3c9b93ed97622488263015"
-  integrity sha512-JQKnKnym8Vi57Jt00UBE2BCyHMO65aer52prSV9B+boJ9Eb3okYAIiRnNJwXKAjRjxRefF4ji4g8sXwnzFD3MQ==
+"@helium/http@^4.10.2":
+  version "4.10.2"
+  resolved "https://registry.yarnpkg.com/@helium/http/-/http-4.10.2.tgz#adfaa790bc090a6f7d4b513f6372fa4dc42eaea7"
+  integrity sha512-WM5XLcQ5h7tzu/CgexVu8fDTYDwvJvW+ncXOsWF4EfZ9TzoiOJmb8QW6kVleGxMHXYMh+dytru2lAUovbJCRDQ==
   dependencies:
-    "@helium/currency" "^3.25.1"
+    "@helium/address" "^4.10.2"
+    "@helium/currency" "^4.10.2"
     axios "^0.21.1"
     camelcase-keys "^6.2.2"
     qs "^6.9.3"
     retry-axios "^2.1.2"
+    snakecase-keys "^5.1.0"
 
 "@helium/idls@^0.2.5":
   version "0.2.5"
@@ -1014,12 +1016,12 @@
     borsh "^0.7.0"
     bs58 "^4.0.1"
 
-"@helium/proto@^1.4.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@helium/proto/-/proto-1.5.0.tgz#bf42fad97d46c3e08653176dcf93b0d6b9633212"
-  integrity sha512-dP3M6rApsNG0fl7IZgYu0R0kxEbhZ/z6BhBoYdmCQDyX9FX+kNlzuPWMji4P9jUFcAs7UAXTZLHR5XATJifVPw==
+"@helium/proto@^1.6.0":
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@helium/proto/-/proto-1.6.0.tgz#b97003bbc511afec1abac7cbffc5c088e348022d"
+  integrity sha512-aoVjhYDcic5g+n/iwKGXmGgMruPXTffpyr2ziGjuhAvU0phPSv6gnTbyHKY7FqBCUOYX4jHzEKJgX7M27UOGGg==
   dependencies:
-    protobufjs "^6.8.9"
+    protobufjs "^6.11.3"
 
 "@helium/spl-utils@^0.2.6":
   version "0.2.6"
@@ -1038,13 +1040,13 @@
     borsh "^0.7.0"
     bs58 "^5.0.0"
 
-"@helium/transactions@^3.38.0":
-  version "3.38.0"
-  resolved "https://registry.yarnpkg.com/@helium/transactions/-/transactions-3.38.0.tgz#c3b36d0e744e61b14c7585feb3e144476c93e49c"
-  integrity sha512-nFOEYGk102a+levjrSQLr94Dj3PYe/vyZMD8g/xPKx98uV47m6b1yzUwhr/Mm5+iUAJcCPo1gT/6UUGBi0+XWg==
+"@helium/transactions@^4.10.2":
+  version "4.10.2"
+  resolved "https://registry.yarnpkg.com/@helium/transactions/-/transactions-4.10.2.tgz#7b5bdd0fa1c37db3c273522b266b8e5f16ad79ed"
+  integrity sha512-WVbkJDIdcQQ81Dta9K9IH2qXQTJ/pMUpdmivs9W+DDSudFX2yLB35bCzqcFfa8RYGld52EhmTWXyuq0HSDaoQw==
   dependencies:
-    "@helium/crypto" "^3.38.0"
-    "@helium/proto" "^1.4.0"
+    "@helium/address" "^4.10.2"
+    "@helium/proto" "^1.6.0"
     "@types/libsodium-wrappers" "^0.7.8"
     long "^4.0.0"
     path "^0.12.7"
@@ -1369,15 +1371,15 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-14.14.20.tgz#f7974863edd21d1f8a494a73e8e2b3658615c340"
   integrity sha512-Y93R97Ouif9JEOWPIUyU+eyIdyRqQR0I8Ez1dzku4hDx34NWh4HbtIc3WNzwB1Y9ULvNGeu5B8h8bVL5cAk4/A==
 
+"@types/node@>=13.7.0":
+  version "20.4.2"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.4.2.tgz#129cc9ae69f93824f92fac653eebfb4812ab4af9"
+  integrity sha512-Dd0BYtWgnWJKwO1jkmTrzofjK2QXXcai0dmtzvIBhcA+RsG5h8R3xlyta0kGOZRNfL9GuRtb1knmPEhQrePCEw==
+
 "@types/node@^12.12.54":
   version "12.20.55"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.20.55.tgz#c329cbd434c42164f846b909bd6f85b5537f6240"
   integrity sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==
-
-"@types/node@^13.7.0":
-  version "13.13.39"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-13.13.39.tgz#237d071fb593d3aaa96f655a8eb2f91e0fb1480c"
-  integrity sha512-wct+WgRTTkBm2R3vbrFOqyZM5w0g+D8KnhstG9463CJBVC3UVZHMToge7iMBR1vDl/I+NWFHUeK9X+JcF0rWKw==
 
 "@types/ws@^7.4.4":
   version "7.4.7"
@@ -4169,10 +4171,10 @@ proto-list@~1.2.1:
   resolved "https://registry.yarnpkg.com/proto-list/-/proto-list-1.2.4.tgz#212d5bfe1318306a420f6402b8e26ff39647a849"
   integrity sha1-IS1b/hMYMGpCD2QCuOJv85ZHqEk=
 
-protobufjs@^6.8.9:
-  version "6.10.2"
-  resolved "https://registry.yarnpkg.com/protobufjs/-/protobufjs-6.10.2.tgz#b9cb6bd8ec8f87514592ba3fdfd28e93f33a469b"
-  integrity sha512-27yj+04uF6ya9l+qfpH187aqEzfCF4+Uit0I9ZBQVqK09hk/SQzKa2MUqUpXaVa7LOFRg1TSSr3lVxGOk6c0SQ==
+protobufjs@^6.11.3:
+  version "6.11.3"
+  resolved "https://registry.yarnpkg.com/protobufjs/-/protobufjs-6.11.3.tgz#637a527205a35caa4f3e2a9a4a13ddffe0e7af74"
+  integrity sha512-xL96WDdCZYdU7Slin569tFX712BxsxslWwAfAhCYjQKGTq7dAU91Lomy6nLLhh/dyGhk/YH4TwTSRxTzhuHyZg==
   dependencies:
     "@protobufjs/aspromise" "^1.1.2"
     "@protobufjs/base64" "^1.1.2"
@@ -4185,7 +4187,7 @@ protobufjs@^6.8.9:
     "@protobufjs/pool" "^1.1.0"
     "@protobufjs/utf8" "^1.1.0"
     "@types/long" "^4.0.1"
-    "@types/node" "^13.7.0"
+    "@types/node" ">=13.7.0"
     long "^4.0.0"
 
 proxy-addr@~2.0.4:
@@ -4716,6 +4718,15 @@ snakecase-keys@^3.2.1:
     map-obj "^4.1.0"
     to-snake-case "^1.0.0"
 
+snakecase-keys@^5.1.0:
+  version "5.4.6"
+  resolved "https://registry.yarnpkg.com/snakecase-keys/-/snakecase-keys-5.4.6.tgz#442f61bea9903faf624796d245a97c9ecb449638"
+  integrity sha512-7ipeNts8YTLbx/6zIaT1mQGrHG2vK+0TjywPD79QzIDJDcvNXBLX7DXQOt6by4DFdncu8lDPc+QHKHemtDEoQg==
+  dependencies:
+    map-obj "^4.1.0"
+    snake-case "^3.0.4"
+    type-fest "^2.5.2"
+
 snapdragon-node@^2.0.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/snapdragon-node/-/snapdragon-node-2.1.1.tgz#6c175f86ff14bdb0724563e8f3c1b021a286853b"
@@ -5023,6 +5034,11 @@ type-fest@^0.8.1:
   version "0.8.1"
   resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-0.8.1.tgz#09e249ebde851d3b1e48d27c105444667f17b83d"
   integrity sha512-4dbzIzqvjtgiM5rw1k5rEHtBANKmdudhGyBEajN01fEyhaAIhsoKNy6y7+IN93IfpFtwY9iqi7kD+xwKhQsNJA==
+
+type-fest@^2.5.2:
+  version "2.19.0"
+  resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-2.19.0.tgz#88068015bb33036a598b952e55e9311a60fd3a9b"
+  integrity sha512-RAH822pAdBgcNMAfWnCBU3CFZcfZ/i1eZjwFU/dsLKumyuuP3niueg2UAukXYF0E2AAoc82ZSSf9J0WQBinzHA==
 
 type-is@~1.6.16:
   version "1.6.18"
