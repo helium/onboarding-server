@@ -231,11 +231,6 @@ export const createHotspot = async (req, res) => {
       }
     }
 
-    // The transaction must include the onboarding server as the payer
-    if (txn?.payer?.b58 !== makerDbEntry.address) {
-      return errorResponse(req, res, 'Invalid payer address', 422)
-    }
-
     // Once an onboarding key has been associated with a hotspot's public
     // address, it cannot be used for a hotspot with a different public address
     if (hotspot.publicAddress && hotspot.publicAddress !== txn?.gateway?.b58) {
