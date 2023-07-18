@@ -173,7 +173,7 @@ export const createHotspot = async (req, res) => {
       })
       tx.add(
         ComputeBudgetProgram.setComputeUnitLimit({
-          units: 350000,
+          units: 600000,
         }),
       )
       tx.add(solanaIx)
