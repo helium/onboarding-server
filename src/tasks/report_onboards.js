@@ -23,20 +23,24 @@ const prompts = require('prompts')
   const maker = await Maker.findByPk(response.makerId)
 
   const total_count = await Hotspot.count({
-    [Op.and]:
+    where: {
+      [Op.and]:
         [
-            { makerId: maker.id },
-            { onboardingKey: {[Op.ne]: null} },
+          { makerId: maker.id },
+          { onboardingKey: {[Op.ne]: null} },
         ]
+    }
   })
 
   const unonboarded_count = await Hotspot.count({
-    [Op.and]:
+    where: {
+      [Op.and]:
         [
-            { makerId: maker.id },
-            { publicAddress: {[Op.eq]: null} },
-            { onboardingKey: {[Op.ne]: null} },
+          { makerId: maker.id },
+          { publicAddress: {[Op.eq]: null} },
+          { onboardingKey: {[Op.ne]: null} },
         ]
+    }
   })
 
   console.log({
