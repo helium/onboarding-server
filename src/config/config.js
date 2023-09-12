@@ -10,4 +10,12 @@ module.exports = {
     host: '127.0.0.1',
     dialect: 'postgres',
   },
+  production: {
+    username: process.env.PGUSER,
+    password: process.env.PGPASSWORD,
+    database: process.env.PGDATABASE,
+    port: process.env.PGPORT,
+    host: process.env.PGHOST,
+    dialect: 'postgres',
+  }
 }
