@@ -22,6 +22,7 @@ module.exports = (sequelize, DataTypes) => {
       publicAddress: DataTypes.TEXT,
       heliumSerial: DataTypes.STRING,
       macEth0: DataTypes.STRING,
+      deviceType: DataTypes.TEXT,
     },
     {
       defaultScope: {

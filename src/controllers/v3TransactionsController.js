@@ -383,6 +383,7 @@ export const onboardToMobile = async (req, res) => {
         maker: makerKey(DAO_KEY, makerDbEntry.name)[0],
         dao: DAO_KEY,
         assetEndpoint: ASSET_API_URL,
+        deviceType: hotspot.deviceType ? lowercaseFirstLetter(hotspot.deviceType) : 'cbrs',
       })
     ).prepare()
 
@@ -403,6 +404,15 @@ export const onboardToMobile = async (req, res) => {
     errorResponse(req, res, error.message, mapCode(error), error.errors)
   }
 }
+
+function lowercaseFirstLetter(str) {
+  if (str.length === 0) {
+    return str // Handle empty string
+  }
+
+  return str.charAt(0).toLowerCase() + str.slice(1)
+}
+
 
 export const updateMobileMetadata = async (req, res) => {
   try {
