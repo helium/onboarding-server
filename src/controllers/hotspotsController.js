@@ -87,6 +87,7 @@ export const search = async (req, res) => {
   }
 }
 
+const VALID_DEVICE_TYPES = new Set(['Cbrs', 'WifiIndoor', 'WifiOutdoor'])
 export const create = async (req, res) => {
   try {
     const { maker } = req
@@ -98,7 +99,12 @@ export const create = async (req, res) => {
       batch,
       heliumSerial,
       macEth0,
+      deviceType
     } = req.body
+
+    if (deviceType && !VALID_DEVICE_TYPES.has(deviceType)) {
+      return errorResponse(req, res, 'Invalid device type', 422)
+    }
 
     const hotspot = await Hotspot.create({
       onboardingKey,
@@ -108,6 +114,7 @@ export const create = async (req, res) => {
       heliumSerial,
       macEth0,
       makerId: maker.id,
+      deviceType
     })
 
     return successResponse(req, res, hotspot, 201)
