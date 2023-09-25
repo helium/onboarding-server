@@ -383,7 +383,7 @@ export const onboardToMobile = async (req, res) => {
         maker: makerKey(DAO_KEY, makerDbEntry.name)[0],
         dao: DAO_KEY,
         assetEndpoint: ASSET_API_URL,
-        deviceType: lowercaseFirstLetter(hotspot.deviceType),
+        deviceType: hotspot.deviceType ? lowercaseFirstLetter(hotspot.deviceType) : 'cbrs',
       })
     ).prepare()
 
