@@ -443,15 +443,13 @@ export const updateMobileMetadata = async (req, res) => {
       },
     })
 
-    if (!hotspot) {
-      return errorResponse(req, res, 'Hotspot not found', 404)
-    }
-
-    const makerDbEntry = await Maker.scope('withKeypair').findByPk(
+    const makerDbEntry = hotspot && await Maker.scope('withKeypair').findByPk(
       hotspot.makerId,
     )
-    const keypairEntropy = Buffer.from(makerDbEntry.keypairEntropy, 'hex')
-    const makerSolanaKeypair = SolanaKeypair.fromSeed(keypairEntropy)
+    const keypairEntropy = makerDbEntry && Buffer.from(makerDbEntry.keypairEntropy, 'hex')
+    const makerSolanaKeypair = keypairEntropy && SolanaKeypair.fromSeed(
+      keypairEntropy,
+    )
 
     const rewardableEntityConfig = rewardableEntityConfigKey(
       MOBILE_SUB_DAO_KEY,
@@ -471,7 +469,9 @@ export const updateMobileMetadata = async (req, res) => {
     }
 
     const payer =
-      location && infoAcc.numLocationAsserts < makerDbEntry.locationNonceLimit
+      location &&
+      makerDbEntry &&
+      infoAcc.numLocationAsserts < makerDbEntry.locationNonceLimit
         ? makerSolanaKeypair.publicKey
         : new PublicKey(wallet)
 
@@ -483,7 +483,6 @@ export const updateMobileMetadata = async (req, res) => {
         assetId,
         payer,
         dcFeePayer: payer,
-        maker: makerKey(DAO_KEY, makerDbEntry.name)[0],
         assetEndpoint: ASSET_API_URL,
       })
     ).prepare()
@@ -495,7 +494,7 @@ export const updateMobileMetadata = async (req, res) => {
       feePayer: payer,
     })
     tx.add(instruction)
-    if (payer.equals(makerSolanaKeypair.publicKey)) {
+    if (makerSolanaKeypair && payer.equals(makerSolanaKeypair.publicKey)) {
       tx.partialSign(makerSolanaKeypair)
     }
 
@@ -545,15 +544,13 @@ export const updateIotMetadata = async (req, res) => {
       },
     })
 
-    if (!hotspot) {
-      return errorResponse(req, res, 'Hotspot not found', 404)
-    }
-
-    const makerDbEntry = await Maker.scope('withKeypair').findByPk(
+    const makerDbEntry = hotspot && await Maker.scope('withKeypair').findByPk(
       hotspot.makerId,
     )
-    const keypairEntropy = Buffer.from(makerDbEntry.keypairEntropy, 'hex')
-    const makerSolanaKeypair = SolanaKeypair.fromSeed(keypairEntropy)
+    const keypairEntropy = makerDbEntry && Buffer.from(makerDbEntry.keypairEntropy, 'hex')
+    const makerSolanaKeypair = keypairEntropy && SolanaKeypair.fromSeed(
+      keypairEntropy,
+    )
     const rewardableEntityConfig = rewardableEntityConfigKey(
       IOT_SUB_DAO_KEY,
       'IOT',
@@ -569,7 +566,9 @@ export const updateIotMetadata = async (req, res) => {
       )
     }
     const payer =
-      location && infoAcc.numLocationAsserts < makerDbEntry.locationNonceLimit
+      location &&
+      makerSolanaKeypair &&
+      infoAcc.numLocationAsserts < makerDbEntry.locationNonceLimit
         ? makerSolanaKeypair.publicKey
         : new PublicKey(wallet)
 
@@ -583,7 +582,6 @@ export const updateIotMetadata = async (req, res) => {
         gain: typeof gain === 'undefined' ? null : gain,
         payer: payer,
         dcFeePayer: payer,
-        maker: makerKey(DAO_KEY, makerDbEntry.name)[0],
         assetEndpoint: ASSET_API_URL,
       })
     ).prepare()
@@ -595,7 +593,7 @@ export const updateIotMetadata = async (req, res) => {
       feePayer: payer,
     })
     tx.add(instruction)
-    if (payer.equals(makerSolanaKeypair.publicKey)) {
+    if (makerSolanaKeypair && payer.equals(makerSolanaKeypair.publicKey)) {
       tx.partialSign(makerSolanaKeypair)
     }
 
