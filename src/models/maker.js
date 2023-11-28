@@ -1,5 +1,7 @@
 const { Model } = require('sequelize')
 const { keyring } = require('@fnando/keyring')
+const Address = require('@helium/address').default
+const { PublicKey } = require('@solana/web3.js')
 
 const keys = JSON.parse(process.env.KEYRING)
 const digestSalt = process.env.KEYRING_SALT
@@ -19,6 +21,7 @@ module.exports = (sequelize, DataTypes) => {
       encryptedKeypairEntropy: DataTypes.TEXT,
       keypairEntropy: DataTypes.VIRTUAL,
       keyringId: DataTypes.INTEGER,
+      solanaAddress: DataTypes.VIRTUAL,
     },
     {
       sequelize,
@@ -35,6 +38,14 @@ module.exports = (sequelize, DataTypes) => {
         },
         afterFind: (record) => {
           if (!record) return
+
+          const records = Array.isArray(record) ? record : [record]
+          for (const record of records) {
+            const addr = record.address && Address.fromB58(record.address)
+            record.solanaAddress =
+              addr && new PublicKey(addr.publicKey).toBase58()
+          }
+
           const { encryptedKeypairEntropy, keyringId } = record
           if (encryptedKeypairEntropy) {
             const encryptor = keyring(keys, { digestSalt })
