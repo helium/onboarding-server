@@ -1,6 +1,6 @@
 {
   "name": "onboarding-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "scripts": {
     "dev": "nodemon -r dotenv/config --exec babel-node ./src/server.js",
