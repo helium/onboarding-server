@@ -50,7 +50,7 @@ const MOBILE_SUB_DAO_KEY = subDaoKey(MOBILE_MINT)[0]
 const INITIAL_SOL = process.env.INITIAL_SOL
 
 export const createHotspot = async (req, res) => {
-  const { transaction } = req.body
+  const { transaction, payer: inPayer } = req.body
   const sdk = await init(provider)
 
   try {
@@ -80,6 +80,12 @@ export const createHotspot = async (req, res) => {
     )
     const keypairEntropy = Buffer.from(makerDbEntry.keypairEntropy, 'hex')
     const makerSolanaKeypair = SolanaKeypair.fromSeed(keypairEntropy)
+    let payer;
+    if (!inPayer) {
+      payer = makerSolanaKeypair.publicKey
+    } else {
+      payer = new PublicKey(inPayer)
+    }
     const maker = makerKey(DAO_KEY, makerDbEntry.name)[0]
     const program = await init(provider)
     const makerAcc = await program.account.makerV0.fetchNullable(maker)
@@ -147,7 +153,6 @@ export const createHotspot = async (req, res) => {
 
     const hotspotOwner = new PublicKey(txn.owner.publicKey)
 
-    const payer = makerSolanaKeypair.publicKey
     const { instruction: solanaIx, pubkeys } = await sdk.methods
       .issueEntityV0({
         entityKey: Buffer.from(bs58.decode(txn.gateway.b58)),
@@ -179,7 +184,8 @@ export const createHotspot = async (req, res) => {
       tx.add(solanaIx)
 
       // If INITIAL_SOL env provided, fund new wallets with that amount of sol
-      if (INITIAL_SOL) {
+      // Only fund the wallet if they aren't doing a payer override.
+      if (INITIAL_SOL && !payer) {
         const ownerAcc = await provider.connection.getAccountInfo(hotspotOwner)
         const initialLamports =
           (await provider.connection.getMinimumBalanceForRentExemption(0)) +
@@ -258,7 +264,7 @@ export const createHotspot = async (req, res) => {
 
 export const onboardToIot = async (req, res) => {
   try {
-    const { entityKey, location, elevation, gain } = req.body
+    const { entityKey, location, elevation, gain, payer: inPayer } = req.body
     if (!entityKey) {
       return errorResponse(req, res, 'Missing entityKey param', 422)
     }
@@ -294,6 +300,13 @@ export const onboardToIot = async (req, res) => {
     )
     const keypairEntropy = Buffer.from(makerDbEntry.keypairEntropy, 'hex')
     const makerSolanaKeypair = SolanaKeypair.fromSeed(keypairEntropy)
+    let payer;
+    if (!inPayer) {
+      payer = makerSolanaKeypair.publicKey
+    } else {
+      payer = new PublicKey(inPayer)
+    }
+    const dcFeePayer = payer
 
     const { instruction } = await (
       await onboardIotHotspot({
@@ -306,8 +319,8 @@ export const onboardToIot = async (req, res) => {
           'IOT',
         )[0],
         assetId,
-        payer: makerSolanaKeypair.publicKey,
-        dcFeePayer: makerSolanaKeypair.publicKey,
+        payer,
+        dcFeePayer,
         maker: makerKey(DAO_KEY, makerDbEntry.name)[0],
         dao: DAO_KEY,
         assetEndpoint: ASSET_API_URL,
@@ -334,7 +347,7 @@ export const onboardToIot = async (req, res) => {
 
 export const onboardToMobile = async (req, res) => {
   try {
-    const { entityKey, location } = req.body
+    const { entityKey, location, payer: inPayer } = req.body
     if (!entityKey) {
       return errorResponse(req, res, 'Missing entityKey param', 422)
     }
@@ -368,6 +381,13 @@ export const onboardToMobile = async (req, res) => {
     )
     const keypairEntropy = Buffer.from(makerDbEntry.keypairEntropy, 'hex')
     const makerSolanaKeypair = SolanaKeypair.fromSeed(keypairEntropy)
+    let payer;
+    if (!inPayer) {
+      payer = makerSolanaKeypair.publicKey
+    } else {
+      payer = new PublicKey(inPayer)
+    }
+    const dcFeePayer = payer
 
     const { instruction } = await (
       await onboardMobileHotspot({
@@ -378,12 +398,14 @@ export const onboardToMobile = async (req, res) => {
           'MOBILE',
         )[0],
         assetId,
-        payer: makerSolanaKeypair.publicKey,
-        dcFeePayer: makerSolanaKeypair.publicKey,
+        payer,
+        dcFeePayer,
         maker: makerKey(DAO_KEY, makerDbEntry.name)[0],
         dao: DAO_KEY,
         assetEndpoint: ASSET_API_URL,
-        deviceType: hotspot.deviceType ? lowercaseFirstLetter(hotspot.deviceType) : 'cbrs',
+        deviceType: hotspot.deviceType
+          ? lowercaseFirstLetter(hotspot.deviceType)
+          : 'cbrs',
       })
     ).prepare()
 
@@ -413,10 +435,9 @@ function lowercaseFirstLetter(str) {
   return str.charAt(0).toLowerCase() + str.slice(1)
 }
 
-
 export const updateMobileMetadata = async (req, res) => {
   try {
-    const { entityKey, location, wallet } = req.body
+    const { entityKey, location, wallet, payer: passedPayer } = req.body
     if (!entityKey) {
       return errorResponse(req, res, 'Missing entityKey param', 422)
     }
@@ -443,13 +464,12 @@ export const updateMobileMetadata = async (req, res) => {
       },
     })
 
-    const makerDbEntry = hotspot && await Maker.scope('withKeypair').findByPk(
-      hotspot.makerId,
-    )
-    const keypairEntropy = makerDbEntry && Buffer.from(makerDbEntry.keypairEntropy, 'hex')
-    const makerSolanaKeypair = keypairEntropy && SolanaKeypair.fromSeed(
-      keypairEntropy,
-    )
+    const makerDbEntry =
+      hotspot && (await Maker.scope('withKeypair').findByPk(hotspot.makerId))
+    const keypairEntropy =
+      makerDbEntry && Buffer.from(makerDbEntry.keypairEntropy, 'hex')
+    const makerSolanaKeypair =
+      keypairEntropy && SolanaKeypair.fromSeed(keypairEntropy)
 
     const rewardableEntityConfig = rewardableEntityConfigKey(
       MOBILE_SUB_DAO_KEY,
@@ -459,6 +479,7 @@ export const updateMobileMetadata = async (req, res) => {
     const infoAcc = await program.account.mobileHotspotInfoV0.fetchNullable(
       info,
     )
+    const rewardableEntityConfigAcc = await program.account.rewardableEntityConfig.fetch(rewardableEntityConfig)
     if (!infoAcc) {
       return errorResponse(
         req,
@@ -468,12 +489,18 @@ export const updateMobileMetadata = async (req, res) => {
       )
     }
 
-    const payer =
-      location &&
-      makerDbEntry &&
-      infoAcc.numLocationAsserts < makerDbEntry.locationNonceLimit
-        ? makerSolanaKeypair.publicKey
-        : new PublicKey(wallet)
+    const dcFee = rewardableEntityConfigAcc.settings.mobileConfigV1.feesByDevice.find(
+      (d) => Object.keys(d.deviceType)[0] == Object.keys(infoAcc.deviceType)[0],
+    ).locationStakingFee
+
+    const payer = passedPayer
+      ? new PublicKey(passedPayer)
+      : location &&
+        makerDbEntry &&
+        infoAcc.numLocationAsserts < makerDbEntry.locationNonceLimit &&
+        haveEnoughDc
+      ? makerSolanaKeypair.publicKey
+      : new PublicKey(wallet)
 
     const { instruction } = await (
       await updateMobileMetadataFn({
@@ -516,7 +543,14 @@ function mapCode(error) {
 
 export const updateIotMetadata = async (req, res) => {
   try {
-    const { entityKey, location, elevation, gain, wallet } = req.body
+    const {
+      entityKey,
+      location,
+      elevation,
+      gain,
+      wallet,
+      payer: passedPayer,
+    } = req.body
     if (!entityKey) {
       return errorResponse(req, res, 'Missing entityKey param', 422)
     }
@@ -544,13 +578,12 @@ export const updateIotMetadata = async (req, res) => {
       },
     })
 
-    const makerDbEntry = hotspot && await Maker.scope('withKeypair').findByPk(
-      hotspot.makerId,
-    )
-    const keypairEntropy = makerDbEntry && Buffer.from(makerDbEntry.keypairEntropy, 'hex')
-    const makerSolanaKeypair = keypairEntropy && SolanaKeypair.fromSeed(
-      keypairEntropy,
-    )
+    const makerDbEntry =
+      hotspot && (await Maker.scope('withKeypair').findByPk(hotspot.makerId))
+    const keypairEntropy =
+      makerDbEntry && Buffer.from(makerDbEntry.keypairEntropy, 'hex')
+    const makerSolanaKeypair =
+      keypairEntropy && SolanaKeypair.fromSeed(keypairEntropy)
     const rewardableEntityConfig = rewardableEntityConfigKey(
       IOT_SUB_DAO_KEY,
       'IOT',
@@ -565,12 +598,13 @@ export const updateIotMetadata = async (req, res) => {
         404,
       )
     }
-    const payer =
-      location &&
-      makerSolanaKeypair &&
-      infoAcc.numLocationAsserts < makerDbEntry.locationNonceLimit
-        ? makerSolanaKeypair.publicKey
-        : new PublicKey(wallet)
+    const payer = passedPayer
+      ? new PublicKey(passedPayer)
+      : location &&
+        makerSolanaKeypair &&
+        infoAcc.numLocationAsserts < makerDbEntry.locationNonceLimit
+      ? makerSolanaKeypair.publicKey
+      : new PublicKey(wallet)
 
     const { instruction } = await (
       await updateIotMetadataFn({
