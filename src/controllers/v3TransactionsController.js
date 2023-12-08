@@ -470,7 +470,10 @@ export const updateMobileMetadata = async (req, res) => {
       makerDbEntry && Buffer.from(makerDbEntry.keypairEntropy, 'hex')
     const makerSolanaKeypair =
       keypairEntropy && SolanaKeypair.fromSeed(keypairEntropy)
-
+    if (makerSolanaKeypair.publicKey.toBase58() === passedPayer) {
+      return errorResponse(req, res, 'Payer cannot be the maker', 422)
+    }
+    
     const rewardableEntityConfig = rewardableEntityConfigKey(
       MOBILE_SUB_DAO_KEY,
       'MOBILE',
@@ -584,6 +587,9 @@ export const updateIotMetadata = async (req, res) => {
       makerDbEntry && Buffer.from(makerDbEntry.keypairEntropy, 'hex')
     const makerSolanaKeypair =
       keypairEntropy && SolanaKeypair.fromSeed(keypairEntropy)
+    if (makerSolanaKeypair.publicKey.toBase58() === passedPayer) {
+      return errorResponse(req, res, 'Payer cannot be the maker', 422)
+    }
     const rewardableEntityConfig = rewardableEntityConfigKey(
       IOT_SUB_DAO_KEY,
       'IOT',
