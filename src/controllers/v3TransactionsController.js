@@ -325,7 +325,14 @@ export const onboardToIot = async (req, res) => {
       ).blockhash,
       feePayer: makerSolanaKeypair.publicKey,
     })
-    tx.add(instruction)
+    const computePriceIx = ComputeBudgetProgram.setComputeUnitPrice({
+      microLamports: 1,
+    })
+
+    const computeLimitIx = ComputeBudgetProgram.setComputeUnitLimit({
+      units: 1400000,
+    })
+    tx.add(computePriceIx, computeLimitIx, instruction)
     tx.partialSign(makerSolanaKeypair)
 
     return successResponse(req, res, {
@@ -397,7 +404,16 @@ export const onboardToMobile = async (req, res) => {
       ).blockhash,
       feePayer: makerSolanaKeypair.publicKey,
     })
-    tx.add(instruction)
+
+    const computePriceIx = ComputeBudgetProgram.setComputeUnitPrice({
+      microLamports: 1,
+    })
+
+    const computeLimitIx = ComputeBudgetProgram.setComputeUnitLimit({
+      units: 1400000,
+    })
+
+    tx.add(computePriceIx, computeLimitIx, instruction)
     tx.partialSign(makerSolanaKeypair)
 
     return successResponse(req, res, {
@@ -489,7 +505,14 @@ export const updateMobileMetadata = async (req, res) => {
       ).blockhash,
       feePayer: payer,
     })
-    tx.add(instruction)
+    const computePriceIx = ComputeBudgetProgram.setComputeUnitPrice({
+      microLamports: 1,
+    })
+
+    const computeLimitIx = ComputeBudgetProgram.setComputeUnitLimit({
+      units: 1400000,
+    })
+    tx.add(computePriceIx, computeLimitIx, instruction)
     if (payer.equals(makerSolanaKeypair.publicKey)) {
       tx.partialSign(makerSolanaKeypair)
     }
@@ -589,7 +612,14 @@ export const updateIotMetadata = async (req, res) => {
       ).blockhash,
       feePayer: payer,
     })
-    tx.add(instruction)
+    const computePriceIx = ComputeBudgetProgram.setComputeUnitPrice({
+      microLamports: 1,
+    })
+
+    const computeLimitIx = ComputeBudgetProgram.setComputeUnitLimit({
+      units: 1400000,
+    })
+    tx.add(computePriceIx, computeLimitIx, instruction)
     if (payer.equals(makerSolanaKeypair.publicKey)) {
       tx.partialSign(makerSolanaKeypair)
     }
