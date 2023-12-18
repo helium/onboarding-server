@@ -178,16 +178,12 @@ export const createHotspot = async (req, res) => {
         ).blockhash,
         feePayer: makerSolanaKeypair.publicKey,
       })
-
-      const computePriceIx = ComputeBudgetProgram.setComputeUnitPrice({
-        microLamports: COMPUTE_UNIT_PRICE,
-      })
-
-      const computeLimitIx = ComputeBudgetProgram.setComputeUnitLimit({
-        units: COMPUTE_UNIT_MAX,
-      })
-
-      tx.add(computePriceIx, computeLimitIx, solanaIx)
+      tx.add(
+        ComputeBudgetProgram.setComputeUnitLimit({
+          units: 1000000,
+        }),
+      )
+      tx.add(solanaIx)
 
       // If INITIAL_SOL env provided, fund new wallets with that amount of sol
       // Only fund the wallet if they aren't doing a payer override.
