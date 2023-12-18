@@ -48,6 +48,8 @@ const DAO_KEY = daoKey(HNT_MINT)[0]
 const IOT_SUB_DAO_KEY = subDaoKey(IOT_MINT)[0]
 const MOBILE_SUB_DAO_KEY = subDaoKey(MOBILE_MINT)[0]
 const INITIAL_SOL = process.env.INITIAL_SOL
+const COMPUTE_UNIT_PRICE = process.env.COMPUTE_UNIT_PRICE || 25000 // 25,000 microlamports per unit
+const COMPUTE_UNIT_MAX = process.env.COMPUTE_UNIT_MAX || 1000000 // 1,000,000 units per transaction
 
 export const createHotspot = async (req, res) => {
   const { transaction, payer: inPayer } = req.body
@@ -80,7 +82,7 @@ export const createHotspot = async (req, res) => {
     )
     const keypairEntropy = Buffer.from(makerDbEntry.keypairEntropy, 'hex')
     const makerSolanaKeypair = SolanaKeypair.fromSeed(keypairEntropy)
-    let payer;
+    let payer
     if (!inPayer) {
       payer = makerSolanaKeypair.publicKey
     } else {
@@ -176,12 +178,16 @@ export const createHotspot = async (req, res) => {
         ).blockhash,
         feePayer: makerSolanaKeypair.publicKey,
       })
-      tx.add(
-        ComputeBudgetProgram.setComputeUnitLimit({
-          units: 1000000,
-        }),
-      )
-      tx.add(solanaIx)
+
+      const computePriceIx = ComputeBudgetProgram.setComputeUnitPrice({
+        microLamports: COMPUTE_UNIT_PRICE,
+      })
+
+      const computeLimitIx = ComputeBudgetProgram.setComputeUnitLimit({
+        units: COMPUTE_UNIT_MAX,
+      })
+
+      tx.add(computePriceIx, computeLimitIx, solanaIx)
 
       // If INITIAL_SOL env provided, fund new wallets with that amount of sol
       // Only fund the wallet if they aren't doing a payer override.
@@ -300,7 +306,7 @@ export const onboardToIot = async (req, res) => {
     )
     const keypairEntropy = Buffer.from(makerDbEntry.keypairEntropy, 'hex')
     const makerSolanaKeypair = SolanaKeypair.fromSeed(keypairEntropy)
-    let payer;
+    let payer
     if (!inPayer) {
       payer = makerSolanaKeypair.publicKey
     } else {
@@ -333,7 +339,14 @@ export const onboardToIot = async (req, res) => {
       ).blockhash,
       feePayer: makerSolanaKeypair.publicKey,
     })
-    tx.add(instruction)
+    const computePriceIx = ComputeBudgetProgram.setComputeUnitPrice({
+      microLamports: COMPUTE_UNIT_PRICE,
+    })
+
+    const computeLimitIx = ComputeBudgetProgram.setComputeUnitLimit({
+      units: COMPUTE_UNIT_MAX,
+    })
+    tx.add(computePriceIx, computeLimitIx, instruction)
     tx.partialSign(makerSolanaKeypair)
 
     return successResponse(req, res, {
@@ -381,7 +394,7 @@ export const onboardToMobile = async (req, res) => {
     )
     const keypairEntropy = Buffer.from(makerDbEntry.keypairEntropy, 'hex')
     const makerSolanaKeypair = SolanaKeypair.fromSeed(keypairEntropy)
-    let payer;
+    let payer
     if (!inPayer) {
       payer = makerSolanaKeypair.publicKey
     } else {
@@ -415,7 +428,16 @@ export const onboardToMobile = async (req, res) => {
       ).blockhash,
       feePayer: makerSolanaKeypair.publicKey,
     })
-    tx.add(instruction)
+
+    const computePriceIx = ComputeBudgetProgram.setComputeUnitPrice({
+      microLamports: COMPUTE_UNIT_PRICE,
+    })
+    const computeLimitIx = ComputeBudgetProgram.setComputeUnitLimit({
+      units: COMPUTE_UNIT_MAX,
+    })
+
+    tx.add(computePriceIx, computeLimitIx, instruction)
+
     tx.partialSign(makerSolanaKeypair)
 
     return successResponse(req, res, {
@@ -473,7 +495,7 @@ export const updateMobileMetadata = async (req, res) => {
     if (makerSolanaKeypair.publicKey.toBase58() === passedPayer) {
       return errorResponse(req, res, 'Payer cannot be the maker', 422)
     }
-    
+
     const rewardableEntityConfig = rewardableEntityConfigKey(
       MOBILE_SUB_DAO_KEY,
       'MOBILE',
@@ -482,7 +504,9 @@ export const updateMobileMetadata = async (req, res) => {
     const infoAcc = await program.account.mobileHotspotInfoV0.fetchNullable(
       info,
     )
-    const rewardableEntityConfigAcc = await program.account.rewardableEntityConfig.fetch(rewardableEntityConfig)
+    const rewardableEntityConfigAcc = await program.account.rewardableEntityConfig.fetch(
+      rewardableEntityConfig,
+    )
     if (!infoAcc) {
       return errorResponse(
         req,
@@ -523,7 +547,17 @@ export const updateMobileMetadata = async (req, res) => {
       ).blockhash,
       feePayer: payer,
     })
-    tx.add(instruction)
+
+    const computePriceIx = ComputeBudgetProgram.setComputeUnitPrice({
+      microLamports: COMPUTE_UNIT_PRICE,
+    })
+
+    const computeLimitIx = ComputeBudgetProgram.setComputeUnitLimit({
+      units: COMPUTE_UNIT_MAX,
+    })
+
+    tx.add(computePriceIx, computeLimitIx, instruction)
+
     if (makerSolanaKeypair && payer.equals(makerSolanaKeypair.publicKey)) {
       tx.partialSign(makerSolanaKeypair)
     }
@@ -632,7 +666,17 @@ export const updateIotMetadata = async (req, res) => {
       ).blockhash,
       feePayer: payer,
     })
-    tx.add(instruction)
+
+    const computePriceIx = ComputeBudgetProgram.setComputeUnitPrice({
+      microLamports: COMPUTE_UNIT_PRICE,
+    })
+
+    const computeLimitIx = ComputeBudgetProgram.setComputeUnitLimit({
+      units: COMPUTE_UNIT_MAX,
+    })
+
+    tx.add(computePriceIx, computeLimitIx, instruction)
+
     if (makerSolanaKeypair && payer.equals(makerSolanaKeypair.publicKey)) {
       tx.partialSign(makerSolanaKeypair)
     }
