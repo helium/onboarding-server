@@ -48,8 +48,12 @@ const DAO_KEY = daoKey(HNT_MINT)[0]
 const IOT_SUB_DAO_KEY = subDaoKey(IOT_MINT)[0]
 const MOBILE_SUB_DAO_KEY = subDaoKey(MOBILE_MINT)[0]
 const INITIAL_SOL = process.env.INITIAL_SOL
-const COMPUTE_UNIT_PRICE = process.env.COMPUTE_UNIT_PRICE || 250000 // 250,000 microlamports per unit
-const COMPUTE_UNIT_MAX = process.env.COMPUTE_UNIT_MAX || 200000 // 200,000 units per transaction
+
+const PRIORITY_FEE_IN_LAMPORTS = process.env.PRIORITY_FEE_IN_LAMPORTS || 5000 // 0.000005 SOL
+const COMPUTE_UNITS = 200000 // 200,000 units per transaction - most transactions will be around 120,000 units
+const COMPUTE_UNIT_PRICE = Math.round(
+  PRIORITY_FEE_IN_LAMPORTS / (COMPUTE_UNITS * 0.000001),
+)
 
 export const createHotspot = async (req, res) => {
   const { transaction, payer: inPayer } = req.body
@@ -340,7 +344,7 @@ export const onboardToIot = async (req, res) => {
     })
 
     const computeLimitIx = ComputeBudgetProgram.setComputeUnitLimit({
-      units: COMPUTE_UNIT_MAX,
+      units: COMPUTE_UNITS,
     })
     tx.add(computePriceIx, computeLimitIx, instruction)
     tx.partialSign(makerSolanaKeypair)
@@ -429,7 +433,7 @@ export const onboardToMobile = async (req, res) => {
       microLamports: COMPUTE_UNIT_PRICE,
     })
     const computeLimitIx = ComputeBudgetProgram.setComputeUnitLimit({
-      units: COMPUTE_UNIT_MAX,
+      units: COMPUTE_UNITS,
     })
 
     tx.add(computePriceIx, computeLimitIx, instruction)
@@ -549,7 +553,7 @@ export const updateMobileMetadata = async (req, res) => {
     })
 
     const computeLimitIx = ComputeBudgetProgram.setComputeUnitLimit({
-      units: COMPUTE_UNIT_MAX,
+      units: COMPUTE_UNITS,
     })
 
     tx.add(computePriceIx, computeLimitIx, instruction)
@@ -668,7 +672,7 @@ export const updateIotMetadata = async (req, res) => {
     })
 
     const computeLimitIx = ComputeBudgetProgram.setComputeUnitLimit({
-      units: COMPUTE_UNIT_MAX,
+      units: COMPUTE_UNITS,
     })
 
     tx.add(computePriceIx, computeLimitIx, instruction)
