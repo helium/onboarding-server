@@ -504,9 +504,6 @@ export const updateMobileMetadata = async (req, res) => {
     const infoAcc = await program.account.mobileHotspotInfoV0.fetchNullable(
       info,
     )
-    const rewardableEntityConfigAcc = await program.account.rewardableEntityConfig.fetch(
-      rewardableEntityConfig,
-    )
     if (!infoAcc) {
       return errorResponse(
         req,
@@ -515,10 +512,6 @@ export const updateMobileMetadata = async (req, res) => {
         404,
       )
     }
-
-    const dcFee = rewardableEntityConfigAcc.settings.mobileConfigV1.feesByDevice.find(
-      (d) => Object.keys(d.deviceType)[0] == Object.keys(infoAcc.deviceType)[0],
-    ).locationStakingFee
 
     const payer = passedPayer
       ? new PublicKey(passedPayer)
