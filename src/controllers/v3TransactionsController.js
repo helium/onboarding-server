@@ -514,8 +514,7 @@ export const updateMobileMetadata = async (req, res) => {
       ? new PublicKey(passedPayer)
       : location &&
         makerDbEntry &&
-        infoAcc.numLocationAsserts < makerDbEntry.locationNonceLimit &&
-        haveEnoughDc
+        infoAcc.numLocationAsserts < makerDbEntry.locationNonceLimit
       ? makerSolanaKeypair.publicKey
       : new PublicKey(wallet)
 
