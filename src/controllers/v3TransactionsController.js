@@ -23,7 +23,6 @@ import {
 } from '@metaplex-foundation/mpl-bubblegum'
 import { AddGatewayV1, Transaction } from '@helium/transactions'
 import {
-  ComputeBudgetProgram,
   Keypair as SolanaKeypair,
   PublicKey,
   SystemProgram,
@@ -36,7 +35,7 @@ import { ASSET_API_URL, provider } from '../helpers/solana'
 import { Hotspot, Maker } from '../models'
 import BN from 'bn.js'
 import bs58 from 'bs58'
-import { sendInstructions } from '@helium/spl-utils'
+import { sendInstructions, withPriorityFees } from '@helium/spl-utils'
 import axios from 'axios'
 
 const ECC_VERIFY_ENDPOINT = process.env.ECC_VERIFY_ENDPOINT
@@ -49,11 +48,7 @@ const IOT_SUB_DAO_KEY = subDaoKey(IOT_MINT)[0]
 const MOBILE_SUB_DAO_KEY = subDaoKey(MOBILE_MINT)[0]
 const INITIAL_SOL = process.env.INITIAL_SOL
 
-const PRIORITY_FEE_IN_LAMPORTS = process.env.PRIORITY_FEE_IN_LAMPORTS || 5000 // 0.000005 SOL
-const COMPUTE_UNITS = 200000 // 200,000 units per transaction - most transactions will be around 120,000 units
-const COMPUTE_UNIT_PRICE = Math.round(
-  PRIORITY_FEE_IN_LAMPORTS / (COMPUTE_UNITS * 0.000001),
-)
+const BASE_PRIORITY_FEE_MICROLAMPORTS = Number(process.env.BASE_PRIORITY_FEE_MICROLAMPORTS || "1")
 
 export const createHotspot = async (req, res) => {
   const { transaction, payer: inPayer } = req.body
@@ -150,7 +145,11 @@ export const createHotspot = async (req, res) => {
 
       await sendInstructions(
         provider,
-        [createMerkle, updateTree],
+        withPriorityFees({
+          connneciton: provider.connection,
+          instructions: [createMerkle, updateTree],
+          basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS
+        }),
         [makerSolanaKeypair, newMerkle],
         makerSolanaKeypair.publicKey,
         'confirmed',
@@ -183,11 +182,13 @@ export const createHotspot = async (req, res) => {
         feePayer: makerSolanaKeypair.publicKey,
       })
       tx.add(
-        ComputeBudgetProgram.setComputeUnitLimit({
-          units: 1000000,
-        }),
+        ...(await withPriorityFees({
+          connection: provider.connection,
+          instructions: [solanaIx],
+          computeUnits: 1000000,
+          basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS
+        }))
       )
-      tx.add(solanaIx)
 
       // If INITIAL_SOL env provided, fund new wallets with that amount of sol
       // Only fund the wallet if they aren't doing a payer override.
@@ -339,14 +340,12 @@ export const onboardToIot = async (req, res) => {
       ).blockhash,
       feePayer: makerSolanaKeypair.publicKey,
     })
-    const computePriceIx = ComputeBudgetProgram.setComputeUnitPrice({
-      microLamports: COMPUTE_UNIT_PRICE,
-    })
-
-    const computeLimitIx = ComputeBudgetProgram.setComputeUnitLimit({
-      units: COMPUTE_UNITS,
-    })
-    tx.add(computePriceIx, computeLimitIx, instruction)
+    tx.add(...(await withPriorityFees({
+      instructions: [instruction],
+      connection: provider.connection,
+      basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
+      computeUnits: 200000
+    })))
     tx.partialSign(makerSolanaKeypair)
 
     return successResponse(req, res, {
@@ -429,14 +428,12 @@ export const onboardToMobile = async (req, res) => {
       feePayer: makerSolanaKeypair.publicKey,
     })
 
-    const computePriceIx = ComputeBudgetProgram.setComputeUnitPrice({
-      microLamports: COMPUTE_UNIT_PRICE,
-    })
-    const computeLimitIx = ComputeBudgetProgram.setComputeUnitLimit({
-      units: COMPUTE_UNITS,
-    })
-
-    tx.add(computePriceIx, computeLimitIx, instruction)
+    tx.add(...(await withPriorityFees({
+      instructions: [instruction],
+      connection: provider.connection,
+      basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
+      computeUnits: 200000
+    })))
 
     tx.partialSign(makerSolanaKeypair)
 
@@ -540,15 +537,12 @@ export const updateMobileMetadata = async (req, res) => {
       feePayer: payer,
     })
 
-    const computePriceIx = ComputeBudgetProgram.setComputeUnitPrice({
-      microLamports: COMPUTE_UNIT_PRICE,
-    })
-
-    const computeLimitIx = ComputeBudgetProgram.setComputeUnitLimit({
-      units: COMPUTE_UNITS,
-    })
-
-    tx.add(computePriceIx, computeLimitIx, instruction)
+    tx.add(...(await withPriorityFees({
+      instructions: [instruction],
+      connection: provider.connection,
+      basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
+      computeUnits: 200000
+    })))
 
     if (makerSolanaKeypair && payer.equals(makerSolanaKeypair.publicKey)) {
       tx.partialSign(makerSolanaKeypair)
@@ -580,6 +574,7 @@ export const updateIotMetadata = async (req, res) => {
       wallet,
       payer: passedPayer,
     } = req.body
+    console.log(req.body)
     if (!entityKey) {
       return errorResponse(req, res, 'Missing entityKey param', 422)
     }
@@ -638,6 +633,17 @@ export const updateIotMetadata = async (req, res) => {
       ? makerSolanaKeypair.publicKey
       : new PublicKey(wallet)
 
+    console.log('doing ix', {
+      location: typeof location === 'undefined' ? null : new BN(location),
+      program,
+      rewardableEntityConfig,
+      assetId,
+      elevation: typeof elevation === 'undefined' ? null : elevation,
+      gain: typeof gain === 'undefined' ? null : gain,
+      payer: payer,
+      dcFeePayer: payer,
+      assetEndpoint: ASSET_API_URL,
+    })
     const { instruction } = await (
       await updateIotMetadataFn({
         location: typeof location === 'undefined' ? null : new BN(location),
@@ -652,6 +658,8 @@ export const updateIotMetadata = async (req, res) => {
       })
     ).prepare()
 
+    console.log('done ix')
+
     const tx = new SolanaTransaction({
       recentBlockhash: (
         await provider.connection.getLatestBlockhash('confirmed')
@@ -659,15 +667,12 @@ export const updateIotMetadata = async (req, res) => {
       feePayer: payer,
     })
 
-    const computePriceIx = ComputeBudgetProgram.setComputeUnitPrice({
-      microLamports: COMPUTE_UNIT_PRICE,
-    })
-
-    const computeLimitIx = ComputeBudgetProgram.setComputeUnitLimit({
-      units: COMPUTE_UNITS,
-    })
-
-    tx.add(computePriceIx, computeLimitIx, instruction)
+    tx.add(...(await withPriorityFees({
+      instructions: [instruction],
+      connection: provider.connection,
+      basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
+      computeUnits: 200000
+    })))
 
     if (makerSolanaKeypair && payer.equals(makerSolanaKeypair.publicKey)) {
       tx.partialSign(makerSolanaKeypair)
