@@ -354,7 +354,6 @@ export const onboardToIot = async (req, res) => {
     )
     tx.partialSign(makerSolanaKeypair)
 
-    console.log(tx.signatures)
     return successResponse(req, res, {
       solanaTransactions: [tx.serialize({ requireAllSignatures: false })],
     })
