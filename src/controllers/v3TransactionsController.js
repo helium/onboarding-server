@@ -48,10 +48,13 @@ const IOT_SUB_DAO_KEY = subDaoKey(IOT_MINT)[0]
 const MOBILE_SUB_DAO_KEY = subDaoKey(MOBILE_MINT)[0]
 const INITIAL_SOL = process.env.INITIAL_SOL
 
-const BASE_PRIORITY_FEE_MICROLAMPORTS = Number(process.env.BASE_PRIORITY_FEE_MICROLAMPORTS || "1")
+const BASE_PRIORITY_FEE_MICROLAMPORTS = Number(
+  process.env.BASE_PRIORITY_FEE_MICROLAMPORTS || '1',
+)
 
 export const createHotspot = async (req, res) => {
   const { transaction, payer: inPayer } = req.body
+  console.log(req.body)
   const sdk = await init(provider)
 
   try {
@@ -148,7 +151,7 @@ export const createHotspot = async (req, res) => {
         withPriorityFees({
           connneciton: provider.connection,
           instructions: [createMerkle, updateTree],
-          basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS
+          basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
         }),
         [makerSolanaKeypair, newMerkle],
         makerSolanaKeypair.publicKey,
@@ -186,8 +189,8 @@ export const createHotspot = async (req, res) => {
           connection: provider.connection,
           instructions: [solanaIx],
           computeUnits: 1000000,
-          basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS
-        }))
+          basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
+        })),
       )
 
       // If INITIAL_SOL env provided, fund new wallets with that amount of sol
@@ -253,6 +256,12 @@ export const createHotspot = async (req, res) => {
     hotspot.publicAddress = txn?.gateway?.b58
     await hotspot.save()
 
+    console.log(
+      'sigs are',
+      solanaTransactions.map((tx) =>
+        tx.signatures.map((sig) => sig.publicKey && sig.publicKey.toBase58()).join(", "),
+      ),
+    )
     return successResponse(req, res, {
       solanaTransactions: solanaTransactions.map(
         (tx) =>
@@ -340,12 +349,14 @@ export const onboardToIot = async (req, res) => {
       ).blockhash,
       feePayer: makerSolanaKeypair.publicKey,
     })
-    tx.add(...(await withPriorityFees({
-      instructions: [instruction],
-      connection: provider.connection,
-      basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
-      computeUnits: 200000
-    })))
+    tx.add(
+      ...(await withPriorityFees({
+        instructions: [instruction],
+        connection: provider.connection,
+        basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
+        computeUnits: 200000,
+      })),
+    )
     tx.partialSign(makerSolanaKeypair)
 
     return successResponse(req, res, {
@@ -428,12 +439,14 @@ export const onboardToMobile = async (req, res) => {
       feePayer: makerSolanaKeypair.publicKey,
     })
 
-    tx.add(...(await withPriorityFees({
-      instructions: [instruction],
-      connection: provider.connection,
-      basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
-      computeUnits: 200000
-    })))
+    tx.add(
+      ...(await withPriorityFees({
+        instructions: [instruction],
+        connection: provider.connection,
+        basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
+        computeUnits: 200000,
+      })),
+    )
 
     tx.partialSign(makerSolanaKeypair)
 
@@ -537,12 +550,14 @@ export const updateMobileMetadata = async (req, res) => {
       feePayer: payer,
     })
 
-    tx.add(...(await withPriorityFees({
-      instructions: [instruction],
-      connection: provider.connection,
-      basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
-      computeUnits: 200000
-    })))
+    tx.add(
+      ...(await withPriorityFees({
+        instructions: [instruction],
+        connection: provider.connection,
+        basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
+        computeUnits: 200000,
+      })),
+    )
 
     if (makerSolanaKeypair && payer.equals(makerSolanaKeypair.publicKey)) {
       tx.partialSign(makerSolanaKeypair)
@@ -574,7 +589,6 @@ export const updateIotMetadata = async (req, res) => {
       wallet,
       payer: passedPayer,
     } = req.body
-    console.log(req.body)
     if (!entityKey) {
       return errorResponse(req, res, 'Missing entityKey param', 422)
     }
@@ -633,17 +647,6 @@ export const updateIotMetadata = async (req, res) => {
       ? makerSolanaKeypair.publicKey
       : new PublicKey(wallet)
 
-    console.log('doing ix', {
-      location: typeof location === 'undefined' ? null : new BN(location),
-      program,
-      rewardableEntityConfig,
-      assetId,
-      elevation: typeof elevation === 'undefined' ? null : elevation,
-      gain: typeof gain === 'undefined' ? null : gain,
-      payer: payer,
-      dcFeePayer: payer,
-      assetEndpoint: ASSET_API_URL,
-    })
     const { instruction } = await (
       await updateIotMetadataFn({
         location: typeof location === 'undefined' ? null : new BN(location),
@@ -658,8 +661,6 @@ export const updateIotMetadata = async (req, res) => {
       })
     ).prepare()
 
-    console.log('done ix')
-
     const tx = new SolanaTransaction({
       recentBlockhash: (
         await provider.connection.getLatestBlockhash('confirmed')
@@ -667,12 +668,14 @@ export const updateIotMetadata = async (req, res) => {
       feePayer: payer,
     })
 
-    tx.add(...(await withPriorityFees({
-      instructions: [instruction],
-      connection: provider.connection,
-      basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
-      computeUnits: 200000
-    })))
+    tx.add(
+      ...(await withPriorityFees({
+        instructions: [instruction],
+        connection: provider.connection,
+        basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
+        computeUnits: 200000,
+      })),
+    )
 
     if (makerSolanaKeypair && payer.equals(makerSolanaKeypair.publicKey)) {
       tx.partialSign(makerSolanaKeypair)
