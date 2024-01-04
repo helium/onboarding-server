@@ -256,12 +256,6 @@ export const createHotspot = async (req, res) => {
     hotspot.publicAddress = txn?.gateway?.b58
     await hotspot.save()
 
-    console.log(
-      'sigs are',
-      solanaTransactions.map((tx) =>
-        tx.signatures.map((sig) => sig.publicKey && sig.publicKey.toBase58()).join(", "),
-      ),
-    )
     return successResponse(req, res, {
       solanaTransactions: solanaTransactions.map(
         (tx) =>
@@ -281,6 +275,7 @@ export const createHotspot = async (req, res) => {
 export const onboardToIot = async (req, res) => {
   try {
     const { entityKey, location, elevation, gain, payer: inPayer } = req.body
+    console.log(req.body)
     if (!entityKey) {
       return errorResponse(req, res, 'Missing entityKey param', 422)
     }
@@ -359,6 +354,7 @@ export const onboardToIot = async (req, res) => {
     )
     tx.partialSign(makerSolanaKeypair)
 
+    console.log(tx.signatures)
     return successResponse(req, res, {
       solanaTransactions: [tx.serialize({ requireAllSignatures: false })],
     })
