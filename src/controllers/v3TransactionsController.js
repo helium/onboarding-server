@@ -349,7 +349,7 @@ export const onboardToIot = async (req, res) => {
         instructions: [instruction],
         connection: provider.connection,
         basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
-        computeUnits: 200000,
+        computeUnits: 300000,
       })),
     )
     tx.partialSign(makerSolanaKeypair)
@@ -439,7 +439,7 @@ export const onboardToMobile = async (req, res) => {
         instructions: [instruction],
         connection: provider.connection,
         basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
-        computeUnits: 200000,
+        computeUnits: 300000,
       })),
     )
 
