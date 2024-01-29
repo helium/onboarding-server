@@ -148,7 +148,7 @@ export const createHotspot = async (req, res) => {
 
       await sendInstructions(
         provider,
-        withPriorityFees({
+        await withPriorityFees({
           connection: provider.connection,
           instructions: [createMerkle, updateTree],
           basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
