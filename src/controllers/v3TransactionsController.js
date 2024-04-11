@@ -152,7 +152,7 @@ export const createHotspot = async (req, res) => {
           connection: provider.connection,
           instructions: [createMerkle, updateTree],
           basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
-          computeUnits: 500000
+          computeUnits: 500000,
         }),
         [makerSolanaKeypair, newMerkle],
         makerSolanaKeypair.publicKey,
@@ -283,7 +283,9 @@ export const onboardToIot = async (req, res) => {
 
     const program = await init(provider)
     const keyToAsset = await program.account.keyToAssetV0.fetchNullable(
-      (await keyToAssetKey(DAO_KEY, entityKey, 'b58'))[0],
+      (
+        await keyToAssetKey(DAO_KEY, entityKey, 'b58')
+      )[0],
     )
 
     if (!keyToAsset) {
@@ -366,14 +368,16 @@ export const onboardToIot = async (req, res) => {
 
 export const onboardToMobile = async (req, res) => {
   try {
-    const { entityKey, location, payer: inPayer } = req.body
+    const { entityKey, location, payer: inPayer, elevation, azimuth } = req.body
     if (!entityKey) {
       return errorResponse(req, res, 'Missing entityKey param', 422)
     }
 
     const program = await init(provider)
     const keyToAsset = await program.account.keyToAssetV0.fetchNullable(
-      (await keyToAssetKey(DAO_KEY, entityKey, 'b58'))[0],
+      (
+        await keyToAssetKey(DAO_KEY, entityKey, 'b58')
+      )[0],
     )
     if (!keyToAsset) {
       return errorResponse(
@@ -425,6 +429,8 @@ export const onboardToMobile = async (req, res) => {
         deviceType: hotspot.deviceType
           ? lowercaseFirstLetter(hotspot.deviceType)
           : 'cbrs',
+        elevation,
+        azimuth,
       })
     ).prepare()
 
@@ -465,7 +471,7 @@ function lowercaseFirstLetter(str) {
 
 export const updateMobileMetadata = async (req, res) => {
   try {
-    const { entityKey, location, wallet, payer: passedPayer } = req.body
+    const { entityKey, location, wallet, payer: passedPayer, azimuth, elevation } = req.body
     if (!entityKey) {
       return errorResponse(req, res, 'Missing entityKey param', 422)
     }
@@ -474,7 +480,9 @@ export const updateMobileMetadata = async (req, res) => {
     }
     const program = await init(provider)
     const keyToAsset = await program.account.keyToAssetV0.fetchNullable(
-      (await keyToAssetKey(DAO_KEY, entityKey, 'b58'))[0],
+      (
+        await keyToAssetKey(DAO_KEY, entityKey, 'b58')
+      )[0],
     )
     if (!keyToAsset) {
       return errorResponse(
@@ -536,6 +544,8 @@ export const updateMobileMetadata = async (req, res) => {
         payer,
         dcFeePayer: payer,
         assetEndpoint: ASSET_API_URL,
+        azimuth,
+        elevation,
       })
     ).prepare()
 
@@ -594,7 +604,9 @@ export const updateIotMetadata = async (req, res) => {
 
     const program = await init(provider)
     const keyToAsset = await program.account.keyToAssetV0.fetchNullable(
-      (await keyToAssetKey(DAO_KEY, entityKey, 'b58'))[0],
+      (
+        await keyToAssetKey(DAO_KEY, entityKey, 'b58')
+      )[0],
     )
     if (!keyToAsset) {
       return errorResponse(
