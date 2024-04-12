@@ -1035,10 +1035,10 @@
   dependencies:
     "@solana/web3.js" "^1.78.8"
 
-"@helium/address@^4.10.2":
-  version "4.10.2"
-  resolved "https://registry.yarnpkg.com/@helium/address/-/address-4.10.2.tgz#56960b118fceb6b6ddabe3e4ecec467d9ae50e26"
-  integrity sha512-qCswC7Z3GXuJyHv36RcOSnffeghjqJQx0fdu2Lxpf9fgOnIi1JZO2tjjk1mBaqOwCyp+0YzrTPUoEukL/WCtsA==
+"@helium/address@^4.10.2", "@helium/address@^4.12.0":
+  version "4.12.0"
+  resolved "https://registry.yarnpkg.com/@helium/address/-/address-4.12.0.tgz#14738298794fb26089dd60fafaec99fdff27efa9"
+  integrity sha512-gTgPHEn19vBzVwYYl6nVDjuWG9dXpgnXdEdWI65vcpseXIg1+E3iVn43FC3TK1wXzIUQkXz6RzRKASc/w85rWA==
   dependencies:
     bs58 "^5.0.0"
     js-sha256 "^0.9.0"
@@ -1071,19 +1071,19 @@
     bn.js "^5.2.0"
     bs58 "^4.0.1"
 
-"@helium/crypto@^4.10.2":
-  version "4.10.2"
-  resolved "https://registry.yarnpkg.com/@helium/crypto/-/crypto-4.10.2.tgz#4707756a4623035e5a6f30b6e4ae51158f1e269a"
-  integrity sha512-ltDWuQwEMNNvIq82QhqF1EPsHm1LrOceiGZgPvi0c9FPp5B6ft2TPjpDueGM27uKy0XbcHAjvBM7HhSCRhs+iQ==
+"@helium/crypto@^4.12.0":
+  version "4.12.0"
+  resolved "https://registry.yarnpkg.com/@helium/crypto/-/crypto-4.12.0.tgz#30bea8c1e48081ee740707f767ff092edaca2637"
+  integrity sha512-+ZLhu0JMzJpfl+Uh+E2TOO+gpGnhrrTjwV2sVGGFok90AYaR8gw5+ev2CMp8byRDEDZFKvN342qRQhKLaBtQjQ==
   dependencies:
-    "@helium/address" "^4.10.2"
+    "@helium/address" "^4.12.0"
     create-hash "^1.2.0"
     libsodium-wrappers "^0.7.6"
 
-"@helium/currency@^4.10.2":
-  version "4.10.2"
-  resolved "https://registry.yarnpkg.com/@helium/currency/-/currency-4.10.2.tgz#f71190a5a249d069a5e77e6c28ea8b0f94303ede"
-  integrity sha512-Cw63efK7se58YQXcsXR1yAoAbO4OdQ3Ts3int6T1GhwYufHg6avDblSUJThkacmRsaGWqOD+oLE/StD6Dou8Ew==
+"@helium/currency@^4.12.0":
+  version "4.12.0"
+  resolved "https://registry.yarnpkg.com/@helium/currency/-/currency-4.12.0.tgz#b9d51841ac0b12e0cf8f11be00c36eb4e6c0233c"
+  integrity sha512-kcTTMM9WY6kXy0KO+f7Wtb4aTSgx5FUIJVaDTjBmy1TDKPM1gaC7fVda3D0lYKe8DELHt9ONhtCK+BmaEbXDcA==
   dependencies:
     bignumber.js "^9.0.0"
 
@@ -1117,18 +1117,18 @@
     bn.js "^5.2.0"
     bs58 "^4.0.1"
 
-"@helium/http@^4.10.2":
-  version "4.10.2"
-  resolved "https://registry.yarnpkg.com/@helium/http/-/http-4.10.2.tgz#adfaa790bc090a6f7d4b513f6372fa4dc42eaea7"
-  integrity sha512-WM5XLcQ5h7tzu/CgexVu8fDTYDwvJvW+ncXOsWF4EfZ9TzoiOJmb8QW6kVleGxMHXYMh+dytru2lAUovbJCRDQ==
+"@helium/http@^4.12.0":
+  version "4.12.0"
+  resolved "https://registry.yarnpkg.com/@helium/http/-/http-4.12.0.tgz#873a64473b9be21a8e385276413da94384341b3a"
+  integrity sha512-ZEw0vDkBaSMKX/1rYtzw0yeRnKLSnXv+SonCH0lydtLKAR3kxJvInOOMy4apptxtram2O0zCI+hOmaochhAE3g==
   dependencies:
-    "@helium/address" "^4.10.2"
-    "@helium/currency" "^4.10.2"
+    "@helium/address" "^4.12.0"
+    "@helium/currency" "^4.12.0"
     axios "^0.21.1"
     camelcase-keys "^6.2.2"
     qs "^6.9.3"
     retry-axios "^2.1.2"
-    snakecase-keys "^5.1.0"
+    snakecase-keys "^5.4.6"
 
 "@helium/idls@^0.5.0":
   version "0.5.0"
@@ -1188,12 +1188,12 @@
     borsh "^0.7.0"
     bs58 "^4.0.1"
 
-"@helium/transactions@^4.10.2":
-  version "4.10.2"
-  resolved "https://registry.yarnpkg.com/@helium/transactions/-/transactions-4.10.2.tgz#7b5bdd0fa1c37db3c273522b266b8e5f16ad79ed"
-  integrity sha512-WVbkJDIdcQQ81Dta9K9IH2qXQTJ/pMUpdmivs9W+DDSudFX2yLB35bCzqcFfa8RYGld52EhmTWXyuq0HSDaoQw==
+"@helium/transactions@^4.12.0":
+  version "4.12.0"
+  resolved "https://registry.yarnpkg.com/@helium/transactions/-/transactions-4.12.0.tgz#391d9cdbadaa4cb7716685e6a44199b300d6f7b3"
+  integrity sha512-LFassrm0FzcEX8uCqoPvRbXrONTmp2UuZP6Hc+CSCIGfHnXESf1Zpac9kZLBsaLm2vLj7d62FUtNwa4J3edILg==
   dependencies:
-    "@helium/address" "^4.10.2"
+    "@helium/address" "^4.12.0"
     "@helium/proto" "^1.6.0"
     "@types/libsodium-wrappers" "^0.7.8"
     long "^4.0.0"
@@ -1350,6 +1350,11 @@
   integrity sha512-t01iSXPuN+Eqzb4eBX0S5oubSqXbK/xXa1Ne18Hj8f9pStxztHCE2gfboSp/dZRLSqfuLpRK2nDXDK+W9puocA==
   dependencies:
     "@noble/hashes" "1.3.3"
+
+"@noble/ed25519@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@noble/ed25519/-/ed25519-2.1.0.tgz#4bf661de9ee0ad775d41fcacbfc9aeec491f459c"
+  integrity sha512-KM4qTyXPinyCgMzeYJH/UudpdL+paJXtY3CHtHYZQtBkS8MZoPr4rOikZllIutJe0d06QDQKisyn02gxZ8TcQA==
 
 "@noble/hashes@1.3.3", "@noble/hashes@^1.3.1":
   version "1.3.3"
@@ -4298,7 +4303,7 @@ snakecase-keys@^3.2.1:
     map-obj "^4.1.0"
     to-snake-case "^1.0.0"
 
-snakecase-keys@^5.1.0:
+snakecase-keys@^5.4.6:
   version "5.5.0"
   resolved "https://registry.yarnpkg.com/snakecase-keys/-/snakecase-keys-5.5.0.tgz#fbf9ca4a47fcc37c7496d00c6d9e455da9750403"
   integrity sha512-r3kRtnoPu3FxGJ3fny6PKNnU3pteb29o6qAa0ugzhSseKNWRkw1dw8nIjXMyyKaU9vQxxVIE62Mb3bKbdrgpiw==
