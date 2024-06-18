@@ -1,8 +1,9 @@
-FROM node:16-alpine AS BUILD_IMAGE
+FROM node:18-alpine AS BUILD_IMAGE
 
 WORKDIR /usr/src/app
 
 COPY package.json ./
+COPY yarn.lock ./
 
 COPY .babelrc .
 RUN yarn install
