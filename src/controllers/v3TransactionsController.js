@@ -181,7 +181,7 @@ export const createHotspot = async (req, res) => {
     if (!(await provider.connection.getAccountInfo(pubkeys.keyToAsset))) {
       const tx = new SolanaTransaction({
         recentBlockhash: (
-          await provider.connection.getLatestBlockhash('confirmed')
+          await provider.connection.getLatestBlockhash('finalized')
         ).blockhash,
         feePayer: makerSolanaKeypair.publicKey,
       })
@@ -343,7 +343,7 @@ export const onboardToIot = async (req, res) => {
 
     const tx = new SolanaTransaction({
       recentBlockhash: (
-        await provider.connection.getLatestBlockhash('confirmed')
+        await provider.connection.getLatestBlockhash('finalized')
       ).blockhash,
       feePayer: makerSolanaKeypair.publicKey,
     })
@@ -436,7 +436,7 @@ export const onboardToMobile = async (req, res) => {
 
     const tx = new SolanaTransaction({
       recentBlockhash: (
-        await provider.connection.getLatestBlockhash('confirmed')
+        await provider.connection.getLatestBlockhash('finalized')
       ).blockhash,
       feePayer: makerSolanaKeypair.publicKey,
     })
@@ -551,7 +551,7 @@ export const updateMobileMetadata = async (req, res) => {
 
     const tx = new SolanaTransaction({
       recentBlockhash: (
-        await provider.connection.getLatestBlockhash('confirmed')
+        await provider.connection.getLatestBlockhash('finalized')
       ).blockhash,
       feePayer: payer,
     })
@@ -671,7 +671,7 @@ export const updateIotMetadata = async (req, res) => {
 
     const tx = new SolanaTransaction({
       recentBlockhash: (
-        await provider.connection.getLatestBlockhash('confirmed')
+        await provider.connection.getLatestBlockhash('finalized')
       ).blockhash,
       feePayer: payer,
     })
