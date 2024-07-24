@@ -429,7 +429,7 @@ export const onboardToMobile = async (req, res) => {
         deviceType: hotspot.deviceType
           ? lowercaseFirstLetter(hotspot.deviceType)
           : 'cbrs',
-        deploymentInfo,
+        deploymentInfo: typeof deploymentInfo === 'undefined' ? null : deploymentInfo,
       })
     ).prepare()
 
@@ -549,7 +549,7 @@ export const updateMobileMetadata = async (req, res) => {
         payer,
         dcFeePayer: payer,
         assetEndpoint: ASSET_API_URL,
-        deploymentInfo,
+        deploymentInfo: typeof deploymentInfo === 'undefined' ? null : deploymentInfo,
       })
     ).prepare()
 
