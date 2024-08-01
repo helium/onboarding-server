@@ -368,7 +368,7 @@ export const onboardToIot = async (req, res) => {
 
 export const onboardToMobile = async (req, res) => {
   try {
-    const { entityKey, location, payer: inPayer, elevation, azimuth } = req.body
+    const { entityKey, location, payer: inPayer, deploymentInfo } = req.body
     if (!entityKey) {
       return errorResponse(req, res, 'Missing entityKey param', 422)
     }
@@ -429,8 +429,7 @@ export const onboardToMobile = async (req, res) => {
         deviceType: hotspot.deviceType
           ? lowercaseFirstLetter(hotspot.deviceType)
           : 'cbrs',
-        elevation,
-        azimuth,
+        deploymentInfo: typeof deploymentInfo === 'undefined' ? null : deploymentInfo,
       })
     ).prepare()
 
@@ -471,7 +470,13 @@ function lowercaseFirstLetter(str) {
 
 export const updateMobileMetadata = async (req, res) => {
   try {
-    const { entityKey, location, wallet, payer: passedPayer, azimuth, elevation } = req.body
+    const {
+      entityKey,
+      location,
+      wallet,
+      payer: passedPayer,
+      deploymentInfo,
+    } = req.body
     if (!entityKey) {
       return errorResponse(req, res, 'Missing entityKey param', 422)
     }
@@ -544,8 +549,7 @@ export const updateMobileMetadata = async (req, res) => {
         payer,
         dcFeePayer: payer,
         assetEndpoint: ASSET_API_URL,
-        azimuth,
-        elevation,
+        deploymentInfo: typeof deploymentInfo === 'undefined' ? null : deploymentInfo,
       })
     ).prepare()
 
