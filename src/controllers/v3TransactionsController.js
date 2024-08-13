@@ -79,9 +79,8 @@ export const createHotspot = async (req, res) => {
       return errorResponse(req, res, 'Hotspot not found', 404)
     }
 
-    const makerDbEntry = await Maker.scope('withKeypair').findByPk(
-      hotspot.makerId,
-    )
+    const makerDbEntry =
+      hotspot && (await Maker.scope('withKeypair').findByPk(hotspot.makerId))
     const keypairEntropy = Buffer.from(makerDbEntry.keypairEntropy, 'hex')
     const makerSolanaKeypair = SolanaKeypair.fromSeed(keypairEntropy)
     let payer
@@ -282,7 +281,9 @@ export const onboardToIot = async (req, res) => {
 
     const program = await init(provider)
     const keyToAsset = await program.account.keyToAssetV0.fetchNullable(
-      (await keyToAssetKey(DAO_KEY, entityKey, 'b58'))[0],
+      (
+        await keyToAssetKey(DAO_KEY, entityKey, 'b58')
+      )[0],
     )
 
     if (!keyToAsset) {
@@ -306,9 +307,8 @@ export const onboardToIot = async (req, res) => {
       return errorResponse(req, res, 'Hotspot not found', 404)
     }
 
-    const makerDbEntry = await Maker.scope('withKeypair').findByPk(
-      hotspot.makerId,
-    )
+    const makerDbEntry =
+      hotspot && (await Maker.scope('withKeypair').findByPk(hotspot.makerId))
     const keypairEntropy = Buffer.from(makerDbEntry.keypairEntropy, 'hex')
     const makerSolanaKeypair = SolanaKeypair.fromSeed(keypairEntropy)
     let payer
@@ -372,7 +372,9 @@ export const onboardToMobile = async (req, res) => {
 
     const program = await init(provider)
     const keyToAsset = await program.account.keyToAssetV0.fetchNullable(
-      (await keyToAssetKey(DAO_KEY, entityKey, 'b58'))[0],
+      (
+        await keyToAssetKey(DAO_KEY, entityKey, 'b58')
+      )[0],
     )
     if (!keyToAsset) {
       return errorResponse(
@@ -473,7 +475,9 @@ export const updateMobileMetadata = async (req, res) => {
     }
     const program = await init(provider)
     const keyToAsset = await program.account.keyToAssetV0.fetchNullable(
-      (await keyToAssetKey(DAO_KEY, entityKey, 'b58'))[0],
+      (
+        await keyToAssetKey(DAO_KEY, entityKey, 'b58')
+      )[0],
     )
     if (!keyToAsset) {
       return errorResponse(
@@ -490,6 +494,10 @@ export const updateMobileMetadata = async (req, res) => {
         [Op.or]: [{ publicAddress: entityKey }],
       },
     })
+
+    if (!hotspot) {
+      return errorResponse(req, res, 'Hotspot not found', 404)
+    }
 
     const makerDbEntry =
       hotspot && (await Maker.scope('withKeypair').findByPk(hotspot.makerId))
@@ -593,7 +601,9 @@ export const updateIotMetadata = async (req, res) => {
 
     const program = await init(provider)
     const keyToAsset = await program.account.keyToAssetV0.fetchNullable(
-      (await keyToAssetKey(DAO_KEY, entityKey, 'b58'))[0],
+      (
+        await keyToAssetKey(DAO_KEY, entityKey, 'b58')
+      )[0],
     )
     if (!keyToAsset) {
       return errorResponse(
@@ -610,6 +620,10 @@ export const updateIotMetadata = async (req, res) => {
         [Op.or]: [{ publicAddress: entityKey }],
       },
     })
+
+    if (!hotspot) {
+      return errorResponse(req, res, 'Hotspot not found', 404)
+    }
 
     const makerDbEntry =
       hotspot && (await Maker.scope('withKeypair').findByPk(hotspot.makerId))
