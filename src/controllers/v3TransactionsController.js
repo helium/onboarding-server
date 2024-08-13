@@ -511,7 +511,11 @@ export const updateMobileMetadata = async (req, res) => {
       makerDbEntry && Buffer.from(makerDbEntry.keypairEntropy, 'hex')
     const makerSolanaKeypair =
       keypairEntropy && SolanaKeypair.fromSeed(keypairEntropy)
-    if (makerSolanaKeypair.publicKey.toBase58() === passedPayer) {
+
+    if (
+      makerSolanaKeypair &&
+      makerSolanaKeypair.publicKey.toBase58() === passedPayer
+    ) {
       return errorResponse(req, res, 'Payer cannot be the maker', 422)
     }
 
@@ -523,6 +527,7 @@ export const updateMobileMetadata = async (req, res) => {
     const infoAcc = await program.account.mobileHotspotInfoV0.fetchNullable(
       info,
     )
+
     if (!infoAcc) {
       return errorResponse(
         req,
@@ -612,6 +617,7 @@ export const updateIotMetadata = async (req, res) => {
         await keyToAssetKey(DAO_KEY, entityKey, 'b58')
       )[0],
     )
+
     if (!keyToAsset) {
       return errorResponse(
         req,
@@ -634,15 +640,22 @@ export const updateIotMetadata = async (req, res) => {
       makerDbEntry && Buffer.from(makerDbEntry.keypairEntropy, 'hex')
     const makerSolanaKeypair =
       keypairEntropy && SolanaKeypair.fromSeed(keypairEntropy)
-    if (makerSolanaKeypair.publicKey.toBase58() === passedPayer) {
+
+    if (
+      makerSolanaKeypair &&
+      makerSolanaKeypair.publicKey.toBase58() === passedPayer
+    ) {
       return errorResponse(req, res, 'Payer cannot be the maker', 422)
     }
+
     const rewardableEntityConfig = rewardableEntityConfigKey(
       IOT_SUB_DAO_KEY,
       'IOT',
     )[0]
+
     const [info] = await iotInfoKey(rewardableEntityConfig, entityKey)
     const infoAcc = await program.account.iotHotspotInfoV0.fetchNullable(info)
+
     if (!infoAcc) {
       return errorResponse(
         req,
@@ -651,6 +664,7 @@ export const updateIotMetadata = async (req, res) => {
         404,
       )
     }
+
     const payer = passedPayer
       ? new PublicKey(passedPayer)
       : location &&
