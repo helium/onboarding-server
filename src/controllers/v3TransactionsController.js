@@ -79,8 +79,9 @@ export const createHotspot = async (req, res) => {
       return errorResponse(req, res, 'Hotspot not found', 404)
     }
 
-    const makerDbEntry =
-      hotspot && (await Maker.scope('withKeypair').findByPk(hotspot.makerId))
+    const makerDbEntry = await Maker.scope('withKeypair').findByPk(
+      hotspot.makerId,
+    )
     const keypairEntropy = Buffer.from(makerDbEntry.keypairEntropy, 'hex')
     const makerSolanaKeypair = SolanaKeypair.fromSeed(keypairEntropy)
     let payer
@@ -503,7 +504,10 @@ export const updateMobileMetadata = async (req, res) => {
     const makerSolanaKeypair =
       keypairEntropy && SolanaKeypair.fromSeed(keypairEntropy)
 
-    if (makerSolanaKeypair.publicKey.toBase58() === passedPayer) {
+    if (
+      makerSolanaKeypair &&
+      makerSolanaKeypair.publicKey.toBase58() === passedPayer
+    ) {
       return errorResponse(req, res, 'Payer cannot be the maker', 422)
     }
 
