@@ -189,7 +189,7 @@ export const createHotspot = async (req, res) => {
         ...(await withPriorityFees({
           connection: provider.connection,
           instructions: [solanaIx],
-          computeUnits: 1000000,
+          computeScaleUp: 1.5,
           basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
         })),
       )
@@ -352,7 +352,7 @@ export const onboardToIot = async (req, res) => {
         instructions: [instruction],
         connection: provider.connection,
         basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
-        computeUnits: 300000,
+        computeScaleUp: 1.5,
       })),
     )
     tx.partialSign(makerSolanaKeypair)
@@ -445,7 +445,7 @@ export const onboardToMobile = async (req, res) => {
         instructions: [instruction],
         connection: provider.connection,
         basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
-        computeUnits: 300000,
+        computeScaleUp: 1.5,
       })),
     )
 
@@ -570,7 +570,7 @@ export const updateMobileMetadata = async (req, res) => {
         instructions: [instruction],
         connection: provider.connection,
         basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
-        computeUnits: 200000,
+        computeScaleUp: 1.5,
       })),
     )
 
@@ -699,7 +699,7 @@ export const updateIotMetadata = async (req, res) => {
         instructions: [instruction],
         connection: provider.connection,
         basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
-        computeUnits: 200000,
+        computeScaleUp: 1.5,
       })),
     )
 
