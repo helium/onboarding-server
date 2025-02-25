@@ -153,6 +153,7 @@ export const createHotspot = async (req, res) => {
           instructions: [createMerkle, updateTree],
           basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
           computeUnits: 500000,
+          feePayer: payer,
         }),
         [makerSolanaKeypair, newMerkle],
         makerSolanaKeypair.publicKey,
@@ -191,6 +192,7 @@ export const createHotspot = async (req, res) => {
           instructions: [solanaIx],
           computeScaleUp: 1.5,
           basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
+          feePayer: payer,
         })),
       )
 
@@ -353,6 +355,7 @@ export const onboardToIot = async (req, res) => {
         connection: provider.connection,
         basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
         computeScaleUp: 1.5,
+        feePayer: payer,
       })),
     )
     tx.partialSign(makerSolanaKeypair)
@@ -446,6 +449,7 @@ export const onboardToMobile = async (req, res) => {
         connection: provider.connection,
         basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
         computeScaleUp: 1.5,
+        feePayer: payer,
       })),
     )
 
@@ -571,6 +575,7 @@ export const updateMobileMetadata = async (req, res) => {
         connection: provider.connection,
         basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
         computeScaleUp: 1.5,
+        feePayer: payer,
       })),
     )
 
@@ -700,6 +705,7 @@ export const updateIotMetadata = async (req, res) => {
         connection: provider.connection,
         basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
         computeScaleUp: 1.5,
+        feePayer: payer,
       })),
     )
 
