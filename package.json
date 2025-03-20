@@ -22,6 +22,7 @@
     "@helium/account-fetch-cache": "^0.10.0",
     "@helium/address": "^4.12.0",
     "@helium/crypto": "^4.12.0",
+    "@helium/data-credits-sdk": "^0.10.0",
     "@helium/helium-entity-manager-sdk": "^0.10.0",
     "@helium/helium-sub-daos-sdk": "^0.10.0",
     "@helium/http": "^4.12.0",

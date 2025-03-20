@@ -1112,6 +1112,21 @@
   dependencies:
     bignumber.js "^9.0.0"
 
+"@helium/data-credits-sdk@^0.10.0":
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/@helium/data-credits-sdk/-/data-credits-sdk-0.10.0.tgz#74d0719d912be5d80d9f4e7cb05b00cc800c5ccf"
+  integrity sha512-oNgfRXm0wCvP8yYJ1EK8kprERhrN5LCFDzC24gsILdI3bb5Icv19cUBQjbk8Mfq9ry+FmxCVy+YAk2qbZK4oQg==
+  dependencies:
+    "@coral-xyz/anchor" "^0.31.0"
+    "@helium/anchor-resolvers" "^0.10.0"
+    "@helium/circuit-breaker-sdk" "^0.10.0"
+    "@helium/helium-sub-daos-sdk" "^0.10.0"
+    "@helium/idls" "^0.10.0"
+    "@helium/spl-utils" "^0.10.0"
+    bn.js "^5.2.0"
+    bs58 "^4.0.1"
+    crypto-js "^4.1.1"
+
 "@helium/helium-entity-manager-sdk@^0.10.0":
   version "0.10.0"
   resolved "https://registry.yarnpkg.com/@helium/helium-entity-manager-sdk/-/helium-entity-manager-sdk-0.10.0.tgz#9be6a43b08b61d6b39ac47f480db81856b0e36d7"
