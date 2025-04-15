@@ -16,6 +16,7 @@ import {
   ConcurrentMerkleTreeAccount,
   PROGRAM_ID as SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
 } from '@solana/spl-account-compression'
+import { dataCreditsKey } from '@helium/data-credits-sdk'
 import { helium } from '@helium/proto'
 import {
   PROGRAM_ID as BUBBLEGUM_PROGRAM_ID,
@@ -35,7 +36,7 @@ import { ASSET_API_URL, provider } from '../helpers/solana'
 import { Hotspot, Maker } from '../models'
 import BN from 'bn.js'
 import bs58 from 'bs58'
-import { sendInstructions, withPriorityFees } from '@helium/spl-utils'
+import { DC_MINT, sendInstructions, withPriorityFees } from '@helium/spl-utils'
 import axios from 'axios'
 
 const ECC_VERIFY_ENDPOINT = process.env.ECC_VERIFY_ENDPOINT
@@ -47,6 +48,7 @@ const DAO_KEY = daoKey(HNT_MINT)[0]
 const IOT_SUB_DAO_KEY = subDaoKey(IOT_MINT)[0]
 const MOBILE_SUB_DAO_KEY = subDaoKey(MOBILE_MINT)[0]
 const INITIAL_SOL = process.env.INITIAL_SOL
+const DATA_CREDITS_KEY = dataCreditsKey(DC_MINT)[0]
 
 const BASE_PRIORITY_FEE_MICROLAMPORTS = Number(
   process.env.BASE_PRIORITY_FEE_MICROLAMPORTS || '1',
@@ -134,7 +136,7 @@ export const createHotspot = async (req, res) => {
           maxBufferSize: oldMerkle.getMaxBufferSize(),
           maxDepth: oldMerkle.getMaxDepth(),
         })
-        .accounts({
+        .accountsPartial({
           payer: makerSolanaKeypair.publicKey,
           maker,
           treeAuthority,
@@ -166,7 +168,7 @@ export const createHotspot = async (req, res) => {
       .issueEntityV0({
         entityKey: Buffer.from(bs58.decode(txn.gateway.b58)),
       })
-      .accounts({
+      .accountsPartial({
         payer,
         maker,
         eccVerifier: ECC_VERIFIER,
@@ -339,7 +341,12 @@ export const onboardToIot = async (req, res) => {
         dao: DAO_KEY,
         assetEndpoint: ASSET_API_URL,
       })
-    ).prepare()
+    )
+      .accountsPartial({
+        dc: DATA_CREDITS_KEY,
+        dcMint: DC_MINT,
+      })
+      .prepare()
 
     const tx = new SolanaTransaction({
       recentBlockhash: (
@@ -429,9 +436,16 @@ export const onboardToMobile = async (req, res) => {
         deviceType: hotspot.deviceType
           ? lowercaseFirstLetter(hotspot.deviceType)
           : 'cbrs',
-        deploymentInfo: typeof deploymentInfo === 'undefined' ? null : deploymentInfo,
+        deploymentInfo:
+          typeof deploymentInfo === 'undefined' ? null : deploymentInfo,
       })
-    ).prepare()
+    )
+      .accountsPartial({
+        dc: DATA_CREDITS_KEY,
+        dcMint: DC_MINT,
+        dntMint: MOBILE_MINT,
+      })
+      .prepare()
 
     const tx = new SolanaTransaction({
       recentBlockhash: (
@@ -554,9 +568,17 @@ export const updateMobileMetadata = async (req, res) => {
         payer,
         dcFeePayer: payer,
         assetEndpoint: ASSET_API_URL,
-        deploymentInfo: typeof deploymentInfo === 'undefined' ? null : deploymentInfo,
+        deploymentInfo:
+          typeof deploymentInfo === 'undefined' ? null : deploymentInfo,
       })
-    ).prepare()
+    )
+      .accountsPartial({
+        dc: DATA_CREDITS_KEY,
+        dcMint: DC_MINT,
+        dntMint: MOBILE_MINT,
+        dao: DAO_KEY
+      })
+      .prepare()
 
     const tx = new SolanaTransaction({
       recentBlockhash: (
@@ -685,7 +707,13 @@ export const updateIotMetadata = async (req, res) => {
         dcFeePayer: payer,
         assetEndpoint: ASSET_API_URL,
       })
-    ).prepare()
+    )
+      .accountsPartial({
+        dc: DATA_CREDITS_KEY,
+        dcMint: DC_MINT,
+        dao: DAO_KEY,
+      })
+      .prepare()
 
     const tx = new SolanaTransaction({
       recentBlockhash: (
