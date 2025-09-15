@@ -19,14 +19,14 @@
     "@babel/plugin-transform-runtime": "^7.12.10",
     "@babel/preset-env": "^7.12.11",
     "@fnando/keyring": "^0.4.0",
-    "@helium/account-fetch-cache": "^0.10.0",
+    "@helium/account-fetch-cache": "^0.10.35",
     "@helium/address": "^4.12.0",
     "@helium/crypto": "^4.12.0",
-    "@helium/data-credits-sdk": "^0.10.0",
-    "@helium/helium-entity-manager-sdk": "^0.10.0",
-    "@helium/helium-sub-daos-sdk": "^0.10.0",
+    "@helium/data-credits-sdk": "^0.10.35",
+    "@helium/helium-entity-manager-sdk": "^0.10.35",
+    "@helium/helium-sub-daos-sdk": "^0.10.35",
     "@helium/http": "^4.12.0",
-    "@helium/spl-utils": "^0.10.0",
+    "@helium/spl-utils": "^0.10.35",
     "@helium/transactions": "^4.12.0",
     "@metaplex-foundation/mpl-bubblegum": "^0.7.0",
     "@noble/ed25519": "^2.1.0",
@@ -64,5 +64,6 @@
     "nodemon": "^2.0.7",
     "prettier": "^2.2.1",
     "rimraf": "^3.0.2"
-  }
+  },
+  "packageManager": "yarn@1.22.21+sha1.1959a18351b811cdeedbd484a8f86c3cc3bbaf72"
 }

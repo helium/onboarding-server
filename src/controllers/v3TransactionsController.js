@@ -528,7 +528,7 @@ async function createAndSignTransaction({
       }),
     )
     if (makerSolanaKeypair && feePayer.equals(makerSolanaKeypair.publicKey)) {
-      await tx.sign(makerSolanaKeypair)
+      await tx.sign([makerSolanaKeypair])
     }
   }
 
