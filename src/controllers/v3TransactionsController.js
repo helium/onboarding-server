@@ -29,6 +29,7 @@ import {
   SystemProgram,
   Transaction as SolanaTransaction,
   LAMPORTS_PER_SOL,
+  VersionedTransaction,
 } from '@solana/web3.js'
 import { Op } from 'sequelize'
 import { errorResponse, successResponse } from '../helpers'
@@ -36,7 +37,15 @@ import { ASSET_API_URL, provider } from '../helpers/solana'
 import { Hotspot, Maker } from '../models'
 import BN from 'bn.js'
 import bs58 from 'bs58'
-import { DC_MINT, sendInstructions, withPriorityFees } from '@helium/spl-utils'
+import {
+  DC_MINT,
+  HELIUM_COMMON_LUT,
+  HELIUM_COMMON_LUT_DEVNET,
+  populateMissingDraftInfo,
+  sendInstructions,
+  toVersionedTx,
+  withPriorityFees,
+} from '@helium/spl-utils'
 import axios from 'axios'
 
 const ECC_VERIFY_ENDPOINT = process.env.ECC_VERIFY_ENDPOINT
@@ -55,7 +64,7 @@ const BASE_PRIORITY_FEE_MICROLAMPORTS = Number(
 )
 
 export const createHotspot = async (req, res) => {
-  const { transaction, payer: inPayer } = req.body
+  const { transaction, payer: inPayer, format = 'legacy' } = req.body
   console.log(req.body)
   const sdk = await init(provider)
 
@@ -178,23 +187,11 @@ export const createHotspot = async (req, res) => {
       })
       .prepare()
 
+    const instructions = []
     let solanaTransactions = []
     // Only return txns if the hotspot doesn't exist
     if (!(await provider.connection.getAccountInfo(pubkeys.keyToAsset))) {
-      const tx = new SolanaTransaction({
-        recentBlockhash: (
-          await provider.connection.getLatestBlockhash('finalized')
-        ).blockhash,
-        feePayer: makerSolanaKeypair.publicKey,
-      })
-      tx.add(
-        ...(await withPriorityFees({
-          connection: provider.connection,
-          instructions: [solanaIx],
-          computeUnits: 1000000,
-          basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
-        })),
-      )
+      instructions.push(solanaIx)
 
       // If INITIAL_SOL env provided, fund new wallets with that amount of sol
       // Only fund the wallet if they aren't doing a payer override.
@@ -204,7 +201,7 @@ export const createHotspot = async (req, res) => {
           (await provider.connection.getMinimumBalanceForRentExemption(0)) +
           Number(INITIAL_SOL) * LAMPORTS_PER_SOL
         if (!ownerAcc || ownerAcc.lamports < initialLamports) {
-          tx.add(
+          instructions.push(
             SystemProgram.transfer({
               fromPubkey: makerSolanaKeypair.publicKey,
               toPubkey: hotspotOwner,
@@ -216,7 +213,13 @@ export const createHotspot = async (req, res) => {
         }
       }
 
-      tx.partialSign(makerSolanaKeypair)
+      const { serializedTransaction } = await createAndSignTransaction({
+        instructions,
+        feePayer: makerSolanaKeypair.publicKey,
+        makerSolanaKeypair,
+        format,
+        computeUnits: 1000000,
+      })
 
       // Verify the gateway that signed is correct so we can sign for the Solana transaction.
       const addGateway = txn.toProto(true)
@@ -227,17 +230,17 @@ export const createHotspot = async (req, res) => {
       try {
         const { transaction: eccVerifiedTxn } = (
           await axios.post(ECC_VERIFY_ENDPOINT, {
-            transaction: tx
-              .serialize({
-                requireAllSignatures: false,
-              })
-              .toString('hex'),
+            transaction: serializedTransaction.toString('hex'),
             msg: Buffer.from(serialized).toString('hex'),
             signature: Buffer.from(txn.gatewaySignature).toString('hex'),
           })
         ).data
         solanaTransactions = [
-          SolanaTransaction.from(Buffer.from(eccVerifiedTxn, 'hex')),
+          format === 'legacy'
+            ? SolanaTransaction.from(Buffer.from(eccVerifiedTxn, 'hex'))
+            : VersionedTransaction.deserialize(
+                Buffer.from(eccVerifiedTxn, 'hex'),
+              ),
         ]
       } catch (e) {
         console.error(e)
@@ -260,13 +263,14 @@ export const createHotspot = async (req, res) => {
     await hotspot.save()
 
     return successResponse(req, res, {
-      solanaTransactions: solanaTransactions.map(
-        (tx) =>
-          Buffer.from(
-            tx.serialize({
-              requireAllSignatures: false,
-            }),
-          ).toJSON().data,
+      solanaTransactions: solanaTransactions.map((tx) =>
+        format === 'legacy'
+          ? Buffer.from(
+              tx.serialize({
+                requireAllSignatures: false,
+              }),
+            ).toJSON().data
+          : Buffer.from(tx.serialize()).toJSON().data,
       ),
     })
   } catch (error) {
@@ -277,7 +281,14 @@ export const createHotspot = async (req, res) => {
 
 export const onboardToIot = async (req, res) => {
   try {
-    const { entityKey, location, elevation, gain, payer: inPayer } = req.body
+    const {
+      entityKey,
+      location,
+      elevation,
+      gain,
+      payer: inPayer,
+      format = 'legacy',
+    } = req.body
     console.log(req.body)
     if (!entityKey) {
       return errorResponse(req, res, 'Missing entityKey param', 422)
@@ -348,24 +359,16 @@ export const onboardToIot = async (req, res) => {
       })
       .prepare()
 
-    const tx = new SolanaTransaction({
-      recentBlockhash: (
-        await provider.connection.getLatestBlockhash('finalized')
-      ).blockhash,
+    const { serializedTransaction } = await createAndSignTransaction({
+      instructions: [instruction],
       feePayer: makerSolanaKeypair.publicKey,
+      makerSolanaKeypair,
+      format,
+      computeUnits: 300000,
     })
-    tx.add(
-      ...(await withPriorityFees({
-        instructions: [instruction],
-        connection: provider.connection,
-        basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
-        computeUnits: 300000,
-      })),
-    )
-    tx.partialSign(makerSolanaKeypair)
 
     return successResponse(req, res, {
-      solanaTransactions: [tx.serialize({ requireAllSignatures: false })],
+      solanaTransactions: [serializedTransaction],
     })
   } catch (error) {
     console.error(error)
@@ -375,7 +378,13 @@ export const onboardToIot = async (req, res) => {
 
 export const onboardToMobile = async (req, res) => {
   try {
-    const { entityKey, location, payer: inPayer, deploymentInfo } = req.body
+    const {
+      entityKey,
+      location,
+      payer: inPayer,
+      deploymentInfo,
+      format = 'legacy',
+    } = req.body
     if (!entityKey) {
       return errorResponse(req, res, 'Missing entityKey param', 422)
     }
@@ -447,26 +456,16 @@ export const onboardToMobile = async (req, res) => {
       })
       .prepare()
 
-    const tx = new SolanaTransaction({
-      recentBlockhash: (
-        await provider.connection.getLatestBlockhash('finalized')
-      ).blockhash,
+    const { serializedTransaction } = await createAndSignTransaction({
+      instructions: [instruction],
       feePayer: makerSolanaKeypair.publicKey,
+      makerSolanaKeypair,
+      format,
+      computeUnits: 300000,
     })
 
-    tx.add(
-      ...(await withPriorityFees({
-        instructions: [instruction],
-        connection: provider.connection,
-        basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
-        computeUnits: 300000,
-      })),
-    )
-
-    tx.partialSign(makerSolanaKeypair)
-
     return successResponse(req, res, {
-      solanaTransactions: [tx.serialize({ requireAllSignatures: false })],
+      solanaTransactions: [serializedTransaction],
     })
   } catch (error) {
     console.error(error)
@@ -482,6 +481,66 @@ function lowercaseFirstLetter(str) {
   return str.charAt(0).toLowerCase() + str.slice(1)
 }
 
+async function createAndSignTransaction({
+  instructions,
+  feePayer,
+  makerSolanaKeypair,
+  format = 'legacy',
+  computeUnits = 200000,
+}) {
+  let tx
+  if (format === 'legacy') {
+    tx = new SolanaTransaction({
+      recentBlockhash: (
+        await provider.connection.getLatestBlockhash('finalized')
+      ).blockhash,
+      feePayer,
+    })
+
+    tx.add(
+      ...(await withPriorityFees({
+        instructions,
+        connection: provider.connection,
+        basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
+        computeUnits,
+      })),
+    )
+
+    if (makerSolanaKeypair && feePayer.equals(makerSolanaKeypair.publicKey)) {
+      tx.partialSign(makerSolanaKeypair)
+    }
+  } else {
+    tx = toVersionedTx(
+      await populateMissingDraftInfo(provider.connection, {
+        instructions: await withPriorityFees({
+          instructions,
+          connection: provider.connection,
+          basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
+          computeUnits,
+        }),
+        feePayer,
+        addressLookupTableAddresses: [
+          provider.connection.rpcEndpoint.includes('test') ||
+          provider.connection.rpcEndpoint.includes('devnet')
+            ? HELIUM_COMMON_LUT_DEVNET
+            : HELIUM_COMMON_LUT,
+        ],
+      }),
+    )
+    if (makerSolanaKeypair && feePayer.equals(makerSolanaKeypair.publicKey)) {
+      await tx.sign([makerSolanaKeypair])
+    }
+  }
+
+  return {
+    transaction: tx,
+    serializedTransaction:
+      format === 'legacy'
+        ? tx.serialize({ requireAllSignatures: false })
+        : Buffer.from(tx.serialize()),
+  }
+}
+
 export const updateMobileMetadata = async (req, res) => {
   try {
     const {
@@ -490,6 +549,7 @@ export const updateMobileMetadata = async (req, res) => {
       wallet,
       payer: passedPayer,
       deploymentInfo,
+      format = 'legacy',
     } = req.body
     if (!entityKey) {
       return errorResponse(req, res, 'Missing entityKey param', 422)
@@ -576,32 +636,20 @@ export const updateMobileMetadata = async (req, res) => {
         dc: DATA_CREDITS_KEY,
         dcMint: DC_MINT,
         dntMint: MOBILE_MINT,
-        dao: DAO_KEY
+        dao: DAO_KEY,
       })
       .prepare()
 
-    const tx = new SolanaTransaction({
-      recentBlockhash: (
-        await provider.connection.getLatestBlockhash('finalized')
-      ).blockhash,
+    const { serializedTransaction } = await createAndSignTransaction({
+      instructions: [instruction],
       feePayer: payer,
+      makerSolanaKeypair,
+      format,
+      computeUnits: 200000,
     })
 
-    tx.add(
-      ...(await withPriorityFees({
-        instructions: [instruction],
-        connection: provider.connection,
-        basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
-        computeUnits: 200000,
-      })),
-    )
-
-    if (makerSolanaKeypair && payer.equals(makerSolanaKeypair.publicKey)) {
-      tx.partialSign(makerSolanaKeypair)
-    }
-
     return successResponse(req, res, {
-      solanaTransactions: [tx.serialize({ requireAllSignatures: false })],
+      solanaTransactions: [serializedTransaction],
     })
   } catch (error) {
     console.error(error)
@@ -625,6 +673,7 @@ export const updateIotMetadata = async (req, res) => {
       gain,
       wallet,
       payer: passedPayer,
+      format = 'legacy',
     } = req.body
     if (!entityKey) {
       return errorResponse(req, res, 'Missing entityKey param', 422)
@@ -715,28 +764,16 @@ export const updateIotMetadata = async (req, res) => {
       })
       .prepare()
 
-    const tx = new SolanaTransaction({
-      recentBlockhash: (
-        await provider.connection.getLatestBlockhash('finalized')
-      ).blockhash,
+    const { serializedTransaction } = await createAndSignTransaction({
+      instructions: [instruction],
       feePayer: payer,
+      makerSolanaKeypair,
+      format,
+      computeUnits: 200000,
     })
 
-    tx.add(
-      ...(await withPriorityFees({
-        instructions: [instruction],
-        connection: provider.connection,
-        basePriorityFee: BASE_PRIORITY_FEE_MICROLAMPORTS,
-        computeUnits: 200000,
-      })),
-    )
-
-    if (makerSolanaKeypair && payer.equals(makerSolanaKeypair.publicKey)) {
-      tx.partialSign(makerSolanaKeypair)
-    }
-
     return successResponse(req, res, {
-      solanaTransactions: [tx.serialize({ requireAllSignatures: false })],
+      solanaTransactions: [serializedTransaction],
     })
   } catch (error) {
     console.error(error)
