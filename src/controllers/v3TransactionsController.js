@@ -230,7 +230,7 @@ export const createHotspot = async (req, res) => {
       try {
         const { transaction: eccVerifiedTxn } = (
           await axios.post(ECC_VERIFY_ENDPOINT, {
-            transaction: serializedTransaction.toString('hex'),
+            transaction: Buffer.from(serializedTransaction).toString('hex'),
             msg: Buffer.from(serialized).toString('hex'),
             signature: Buffer.from(txn.gatewaySignature).toString('hex'),
           })
