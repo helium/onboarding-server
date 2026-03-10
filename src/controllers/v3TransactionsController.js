@@ -536,9 +536,8 @@ async function createAndSignTransaction({
     transaction: tx,
     serializedTransaction:
       format === 'legacy'
-        ? Buffer.from(tx.serialize({ requireAllSignatures: false })).toJSON()
-            .data
-        : Buffer.from(tx.serialize()).toJSON().data,
+        ? tx.serialize({ requireAllSignatures: false })
+        : Buffer.from(tx.serialize()),
   }
 }
 
