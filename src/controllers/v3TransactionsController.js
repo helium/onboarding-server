@@ -544,7 +544,7 @@ async function createAndSignTransaction({
 // Merge the caller's deploymentInfo with the existing on-chain value so a
 // partial update (e.g. a location re-assert) can't wipe fields like the
 // downtilt args or serial that were set at onboard time.
-function mergeDeploymentInfo(existing, incoming) {
+const mergeDeploymentInfo = (existing, incoming) => {
   if (!incoming || !existing) {
     return incoming || null
   }
