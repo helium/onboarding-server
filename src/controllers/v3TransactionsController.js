@@ -541,6 +541,41 @@ async function createAndSignTransaction({
   }
 }
 
+// Merge the caller's deploymentInfo with the existing on-chain value so a
+// partial update (e.g. a location re-assert) can't wipe fields like the
+// downtilt args or serial that were set at onboard time.
+const mergeDeploymentInfo = (existing, incoming) => {
+  if (!incoming || !existing) {
+    return incoming || null
+  }
+
+  if (incoming.wifiInfoV0 && existing.wifiInfoV0) {
+    return {
+      wifiInfoV0: {
+        ...existing.wifiInfoV0,
+        ...Object.fromEntries(
+          Object.entries(incoming.wifiInfoV0).filter(
+            ([, value]) => typeof value !== 'undefined',
+          ),
+        ),
+      },
+    }
+  }
+
+  if (incoming.cbrsInfoV0 && existing.cbrsInfoV0) {
+    return {
+      cbrsInfoV0: {
+        radioInfos:
+          typeof incoming.cbrsInfoV0.radioInfos !== 'undefined'
+            ? incoming.cbrsInfoV0.radioInfos
+            : existing.cbrsInfoV0.radioInfos,
+      },
+    }
+  }
+
+  return incoming
+}
+
 export const updateMobileMetadata = async (req, res) => {
   try {
     const {
@@ -628,8 +663,10 @@ export const updateMobileMetadata = async (req, res) => {
         payer,
         dcFeePayer: payer,
         assetEndpoint: ASSET_API_URL,
-        deploymentInfo:
+        deploymentInfo: mergeDeploymentInfo(
+          infoAcc.deploymentInfo,
           typeof deploymentInfo === 'undefined' ? null : deploymentInfo,
+        ),
       })
     )
       .accountsPartial({
