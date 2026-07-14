@@ -12,6 +12,7 @@ export const index = async (req, res) => {
 
     const hotspots = await Hotspot.findAll({
       where: { makerId: maker.id },
+      order: [['id', 'ASC']],
       ...paginate({ page, pageSize }),
     })
 
